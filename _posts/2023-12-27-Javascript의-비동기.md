@@ -84,16 +84,16 @@ b()
 1. 콜백 함수   
    나중에 실행 되어야 할 함수를 콜백 함수로 넘겨주면 동기적인 작업이 가능하다.
    ```javascript
-        const a = (callback) => {
-            setTimeout(() => {
-                console.log("a");
-                callback();
-            }, 3000);
-        };
-        
-        const b = () => { console.log("b"); };
-        
-        a(b);
+    const a = (callback) => {
+        setTimeout(() => {
+            console.log("a");
+            callback();
+        }, 3000);
+    };
+    
+    const b = () => { console.log("b"); };
+    
+    a(b);
    ```
    하지만 이 경우 너무 함수가 많아지면 길어지고 복잡해져서 이른바 콜백 지옥이라고 불리는 현상이 일어난다.
 
@@ -102,54 +102,54 @@ b()
    원래 동기 처리를 위해 만들어진 객체로, 처리 완료시 resolve, 문제 발생시 reject 함수를 호출하여 동기 처리를
    할수 있다.
    ```javascript
-        const a = () => {
-            return new Promise((resolve, reject) => {
-                setTimeout(() => {
-                    console.log("a");
-                    resolve();
-                }, 3000);
-            });
-        };
-        
-        const b = () => {
-            console.log("b");
-        };
-        
-        a().then(b);
+    const a = () => {
+        return new Promise((resolve, reject) => {
+            setTimeout(() => {
+                console.log("a");
+                resolve();
+            }, 3000);
+        });
+    };
+    
+    const b = () => {
+        console.log("b");
+    };
+    
+    a().then(b);
    ```
    promise 반환 하는 함수은 then과 catch, finally를 이용하여 동기적인 처리를 할 수 있다.
    ```javascript
-        const a = () => {
-            return new Promise((resolve) => {
-                setTimeout(() => {
-                    console.log("a");
-                    resolve();
-                }, 3000);
-            });
-        };
-        
-        const b = () => {
-            return new Promise((resolve) => {
-                setTimeout(() => {
-                    console.log("b");
-                    resolve();
-                }, 3000);
-            });
-        };
-        
-        const c = () => {
-            console.log("c");
-        };
-        
-        a()
-        .then(b)
-        .then(c)
-        .catch(
-            console.log("문제 발생")
-        )
-        .finally(() => {
-            console.log("모든 함수 완료");
+    const a = () => {
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                console.log("a");
+                resolve();
+            }, 3000);
         });
+    };
+    
+    const b = () => {
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                console.log("b");
+                resolve();
+            }, 3000);
+        });
+    };
+    
+    const c = () => {
+        console.log("c");
+    };
+    
+    a()
+    .then(b)
+    .then(c)
+    .catch(
+        console.log("문제 발생")
+    )
+    .finally(() => {
+        console.log("모든 함수 완료");
+    });
    ```
    하지만 promise 역시 코드가 길어지면 프로미스 헬이라고 끝도 없이 복잡해진다.
 
@@ -159,35 +159,35 @@ b()
    해당 함수가 promise 객체를 반환하기 전까지 다음 함수로 넘어가지 않는다.
    단, await를 쓴 함수가 내부에 있을 경우 상위 함수의 앞에 async를 붙여 처리해야한다.
    ```javascript
-        const a = () => {
-            return new Promise((resolve) => {
-                setTimeout(() => {
-                    console.log("a");
-                    resolve();
-                }, 3000);
-            });
-        };
-        
-        const b = () => {
-            return new Promise((resolve) => {
-                setTimeout(() => {
-                    console.log("b");
-                    resolve();
-                }, 3000);
-            });
-        };
-        
-        const c = () => {
-            console.log("c");
-        };
-        
-        const runAll = async () => {
-            await a();
-            await b();
-            c();
-        };
-        
-        runAll();
+    const a = () => {
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                console.log("a");
+                resolve();
+            }, 3000);
+        });
+    };
+    
+    const b = () => {
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                console.log("b");
+                resolve();
+            }, 3000);
+        });
+    };
+    
+    const c = () => {
+        console.log("c");
+    };
+    
+    const runAll = async () => {
+        await a();
+        await b();
+        c();
+    };
+    
+    runAll();
    ```
 
 이렇게 세 가지 방법으로 동기 처리를 할 수 있다. 단순히 여러개의 함수를 나열하는 방식이라고 한다면
@@ -195,17 +195,17 @@ b()
 다음의 코드를 보자
 
 ```javascript
-   const delay = () => {
-      const randomDelay = Math.floor(Math.random() * 4) * 100
-      return new Promise(resolve => setTimeout(resolve, randomDelay))
-   }
-   
-   const list = [1, 2, 3, 4, 5, 6, 7]
-   
-   for (let i=0;i<list.length;i++) {
-      delay().then(() => console.log(list[i]))
-   }
-   // 출처 : https://tecoble.techcourse.co.kr/post/2020-09-01-loop-async/
+ const delay = () => {
+    const randomDelay = Math.floor(Math.random() * 4) * 100
+    return new Promise(resolve => setTimeout(resolve, randomDelay))
+ }
+ 
+ const list = [1, 2, 3, 4, 5, 6, 7]
+ 
+ for (let i=0;i<list.length;i++) {
+    delay().then(() => console.log(list[i]))
+ }
+ // 출처 : https://tecoble.techcourse.co.kr/post/2020-09-01-loop-async/
 ```
 딜레이 함수는 좋은게 있어서 갖고 왔다. 일반적으로 이 딜레이 함수는 파일 작업이거나 api 요청일 것이다.
 이러한 코드일때 구동시켜보면 당연하지만 비동기 문제가 발생해서 순서대로 출력되지 않는다.
@@ -213,43 +213,43 @@ b()
 문제는 await를 쓰려면 상위 함수에 async를 써야하기 때문에 함수로 한번 둘러싸야한다.
 
 ```javascript
-   const delay = () => {
-      const randomDelay = Math.floor(Math.random() * 4) * 100
-      return new Promise(resolve => setTimeout(resolve, randomDelay))
-   }
-   
-   const result = async (list) => {
-      for (let i =0;i<list.length;i++) {
-         await delay()
-                 .then(() => console.log(list[i]))
-      }
-   }
+ const delay = () => {
+    const randomDelay = Math.floor(Math.random() * 4) * 100
+    return new Promise(resolve => setTimeout(resolve, randomDelay))
+ }
+ 
+ const result = async (list) => {
+    for (let i =0;i<list.length;i++) {
+       await delay()
+               .then(() => console.log(list[i]))
+    }
+ }
 
-   // const result = async (list) => {
-   //    for (const data of list) {
-   //       await delay()
-   //               .then(() => console.log(data))
-   //    }
-   // }
-   
-   const list = [1, 2, 3, 4, 5, 6, 7]
-   
-   result(list)
+ // const result = async (list) => {
+ //    for (const data of list) {
+ //       await delay()
+ //               .then(() => console.log(data))
+ //    }
+ // }
+ 
+ const list = [1, 2, 3, 4, 5, 6, 7]
+ 
+ result(list)
 ```
 이렇게 함수로 감싸서 for 처리를 한다면 동기적으로 돌아간다. 혹은 주석 처리한 것 같이 for of 반복문을 써도 된다.
 하지만 이것은 안된다.
 
 ```javascript
-   const delay = () => {
-      const randomDelay = Math.floor(Math.random() * 4) * 100
-      return new Promise(resolve => setTimeout(resolve, randomDelay))
-   }
-   
-   let list = [1, 2, 3, 4, 5]
-   
-   list.forEach(async data => {
-      await delay().then(() => console.log(data))
-   })
+ const delay = () => {
+    const randomDelay = Math.floor(Math.random() * 4) * 100
+    return new Promise(resolve => setTimeout(resolve, randomDelay))
+ }
+ 
+ let list = [1, 2, 3, 4, 5]
+ 
+ list.forEach(async data => {
+    await delay().then(() => console.log(data))
+ })
 ```
 
 이 경우 순서대로 출력이 안된다. 즉 동기적으로 처리되지 않는다. async await을 썼는데도 비동기라고 싶을 수 있지만
