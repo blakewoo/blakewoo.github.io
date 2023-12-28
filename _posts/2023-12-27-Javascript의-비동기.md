@@ -3,7 +3,7 @@ title: Javascript의 비동기
 author: blakewoo
 date: 2023-12-27 20:00:00 +0900
 categories: [javascript]
-tags: [javascript, Web, nodejs]
+tags: [javascript, web, nodejs]
 render_with_liquid: false
 ---
 
