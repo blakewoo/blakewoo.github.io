@@ -26,8 +26,8 @@ GUEST OS : UBUNTU 20.04
 
 ## 절차
 VM에 UBUNTU 공식 홈페이지에서 20.04의 ISO 파일을 다운 받아서 설치했다.   
-내가 설치한 20.04의 커널 버전은 아래와 같이 확인했다.   
-![img.png](../../assets/blog/trial_error/kernel_build/img.png)   
+내가 설치한 20.04의 커널 버전은 아래와 같이 확인했다.     
+![img.png](/assets/blog/trial_error/kernel_build/img.png)   
 
 현재 5.15.0-119버전이 설치되어있는데 이 버전을 5.4.214버전으로 업데이트 해보도록 하겠다.
 
@@ -36,7 +36,7 @@ VM에 UBUNTU 공식 홈페이지에서 20.04의 ISO 파일을 다운 받아서 �
 url이 apt-sources.list에서 주석처리 되어있기 때문에 해당 주석을 풀어주어야한다.
 
 실제 경로는 /etc/apt/sources.list이며 여기서 deb-src 부분을 주석 해제해주면 된다.   
-![img_1.png](../../assets/blog/trial_error/kernel_build/img_1.png)   
+![img_1.png](/assets/blog/trial_error/kernel_build/img_1.png)   
 
 이렇게 주석해제한 뒤에 apt-update 명령어로 apt에 반영해주도록 하자.
 이후 아래의 명령어로 linux 커널 빌드에 필요한 의존성들을 설치해준다.
@@ -59,13 +59,13 @@ make menuconfig
 ```
 
 그러면 아래와 같은 GUI 환경이 나타난다.   
-![img_2.png](../../assets/blog/trial_error/kernel_build/img_2.png)
+![img_2.png](/assets/blog/trial_error/kernel_build/img_2.png)
 
 보이는 화면에서 General setup에 들어가면 Local version - append to kernel release 라고 되어있는
 항목이 보이는데 여기서 내가 원하는 버전 명을 붙일 수 있다. 내가 작업한 커널을 표시하는데 유용하다.   
 여기서 나는 blake-ver1.0이라는 버전 명을 추가하도록하겠다.
 
-![img_3.png](../../assets/blog/trial_error/kernel_build/img_3.png)
+![img_3.png](/assets/blog/trial_error/kernel_build/img_3.png)
 
 OK에 Enter를 쳐서 저장 후 ESC 입력 두번을 통해 첫 화면으로 나온다.
 그 뒤에 Cryptographic API 메뉴로 들어가 가장 아래 Certificates for signature checking 메뉴로 들어가면
@@ -87,36 +87,36 @@ grep -c processor /proc/cpuinfo
 ```
 
 이후 코어 개수를 옵션값으로 주고 아래와 같이 make를 해주면 된다.   
-![img_4.png](../../assets/blog/trial_error/kernel_build/img_4.png)   
+![img_4.png](/assets/blog/trial_error/kernel_build/img_4.png)   
 
 커널 빌드를 처음해보면 놀랄 것이다.
 왜 이렇게 시간이 많이 걸리는지.
 실제로 나만 하더라도 약 40분 넘게 소요된 것 같다.
 컴파일되는 파일들의 항목이 쭉 뜨고 난 뒤에 추가적으로 모듈들도 빌드해줘야한다.
 
-![img_5.png](../../assets/blog/trial_error/kernel_build/img_5.png)
+![img_5.png](/assets/blog/trial_error/kernel_build/img_5.png)
 
 이렇게 빌드된 모듈들을 설치해준다.   
-![img_6.png](../../assets/blog/trial_error/kernel_build/img_6.png)
+![img_6.png](/assets/blog/trial_error/kernel_build/img_6.png)
 
 이후 빌드 된 커널 전체를 설치해주면 된다.   
-![img_7.png](../../assets/blog/trial_error/kernel_build/img_7.png)
+![img_7.png](/assets/blog/trial_error/kernel_build/img_7.png)
 
 혹시 커널에 문제가 있을 때 이전 커널로 돌아가야하기 때문에 GRUB의 설정을 바꾸어
 부팅시 커널을 선택할 수 있도록 바꾸도록하자.   
 /etc/default/grub를 VIM 편집기로 열어 아래와 같이 바꿔준다.
 
-![img_8.png](../../assets/blog/trial_error/kernel_build/img_8.png)
+![img_8.png](/assets/blog/trial_error/kernel_build/img_8.png)
 
 그냥 GRUB_TIMEOUT_STYLE=hidden을 주석처리했고, GRUB_TIMEOUT=0인걸
 10으로 바꿔주었다
 이후 wq로 저장하여 나온 다음에 grub-update를 이용하여 grub에 반영해준다.
 
-![img_9.png](../../assets/blog/trial_error/kernel_build/img_9.png)
+![img_9.png](/assets/blog/trial_error/kernel_build/img_9.png)
 
 이렇게하고 재부팅하게되면 GRUB 부트 화면이 뜨게 된다.
 거기서 내가 설치한 커널을 선택하여 부팅하면 된다.
 
-![img_10.png](../../assets/blog/trial_error/kernel_build/img_10.png)
+![img_10.png](/assets/blog/trial_error/kernel_build/img_10.png)
 
 직접 빌드한 커널이 반영된 모습이다.
