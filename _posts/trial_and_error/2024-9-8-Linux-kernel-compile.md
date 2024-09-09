@@ -1,7 +1,7 @@
 ---
 title: ubuntu에서 커널 빌드 및 패치하기
 author: blakewoo
-date: 2024-9-8 23:00:00 +0900
+date: 2024-9-8 22:00:00 +0900
 categories: [Trial and error]
 tags: [OS, Linux]
 render_with_liquid: false
