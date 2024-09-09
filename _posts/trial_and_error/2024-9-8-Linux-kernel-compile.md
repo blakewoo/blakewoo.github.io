@@ -19,10 +19,10 @@ render_with_liquid: false
 Windows 10 Home
 
 ### 3. VM 환경
-VM 환경 : VMware workstation 16 player
-GUEST OS : UBUNTU 20.04
-할당된 vCPU : 4
-할당된 RAM : 8GB
+- VM 환경 : VMware workstation 16 player
+- GUEST OS : UBUNTU 20.04    
+- 할당된 vCPU : 4   
+- 할당된 RAM : 8GB   
 
 ## 절차
 VM에 UBUNTU 공식 홈페이지에서 20.04의 ISO 파일을 다운 받아서 설치했다.   
