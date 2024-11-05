@@ -1,7 +1,7 @@
 ---
 title: OSI 7 Layer - 네트워크 계층
 author: blakewoo
-date: 2024-11-3 22:00:00 +0900
+date: 2024-11-5 22:00:00 +0900
 categories: [Computer science]
 tags: [Computer science, Network] 
 render_with_liquid: false
