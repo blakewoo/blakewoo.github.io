@@ -106,7 +106,7 @@ B 클래스는 65,534개의 호스트를 사용할 수 있는데, 255개를 제�
 // AND 연산으로 대상 IP 주소와 연산하게 되면 호스트 주소만 남게 되기 때문에 저런식으로 표기한다.
 
 205.1.1.244/23
-// 23비트까지 네트워크 주소임을 표기
+// 23비트까지 네트워크 주소임을 표기, CIDR 방식이라고도 한다.
 ```
 
 #### ※ Subnetting 예시
@@ -124,6 +124,26 @@ B 클래스는 65,534개의 호스트를 사용할 수 있는데, 255개를 제�
 - 네트워크 주소 : 192.168.12.0, 192.168.12.64, 192.168.12.128, 192.168.12.192
 - 브로드 캐스트 주소 : 192.168.12.63, 192.168.12.127, 192.168.12.191, 192.168.12.255
 - 가능한 값의 범위 : 192.168.12.1 ~ 192.168.12.62, 192.168.12.65 ~ 192.168.12.126, 192.168.12.129 ~ 192.168.12.190, 192.168.12.193 ~ 192.168.12.254
+
+### 4) IP 헤더
+통신을 할 때 보내려는 데이터의 주소를 명시해야한다. 따라서 아래의 형태로 데이터 앞에 헤더를 붙이는데 이를 IP 헤더라고 한다.
+당연하지만 IPv4와 IPv6 간의 헤더의 모양은 다르며 IPv4의 경우 아래와 같은 형태를 하고 있다.
+
+![img.png](/assets/blog/cs/network/osi_7_layer_network/img_2.png)
+
+- Version : IPv4면 바이너리값으로 4, IPv6면 바이너리값으로 6이다.
+- Header Length(HLEN) : 헤더의 길이를 32비트 워드 단위로 표시한다.
+- Type of Service (ToS) : 요구 되는 서비스 품질을 나타낸다. 미리 약속된 값이 있다.
+- Total Packet Length : IP 헤더 및 데이터를 포함한 IP 패킷 전체의 길이를 바이트 단위로 표시한다. 최대값은 65,535이다.
+- Fragment Identifier : 너무 데이터가 크면 쪼개져서 보내지는데 동일한 데이터인지 알수 있는 일련번호이다.
+- Fragment Flag : 분할된 특성을 나타낸다.
+- Fragmentation Offset : 분할된 조각 중 몇번째인지 나타낸다.
+- Time To Live : IP 패킷의 수명이다. 라우터를 거칠때마다 1씩 줄어든다. OS마다 값이 다르다.
+- Protocol Idendifier : 어떤
+- Header checksum : 헤더 데이터에 오류가 없는지 알 수 있는 checksum 값이다.
+- Source Address : 송신지 IP 주소이다.
+- Destination Address : 수신지 IP 주소이다.
+- IP Option : 추가적인 IP Header에 대한 옵션이다. 거의 사용되지 않는다.
 
 ## 4. DNS
 IP 주소 같은 숫자를 사람이 외우기에는 꽤나 헷갈린다.
@@ -184,3 +204,4 @@ IP가 중간에 바뀐 경우에는 없는 서버로 전송하는 셈이기 때�
 - [heyhyo NOTE-[Network]네트워크 클래스(Network Class)](https://hyoje420.tistory.com/31)
 - [heyhyo NOTE-[Network]서브넷(Subnet)](https://hyoje420.tistory.com/32)
 - [mdn web docs - What is a Domain Name?](https://developer.mozilla.org/en-US/docs/Learn/Common_questions/Web_mechanics/What_is_a_domain_name)
+- [Mind net - [ 네트워크 쉽게 이해하기 18편 ] IP Header IP헤더 구조](https://mindnet.tistory.com/entry/%EB%84%A4%ED%8A%B8%EC%9B%8C%ED%81%AC-%EC%89%BD%EA%B2%8C-%EC%9D%B4%ED%95%B4%ED%95%98%EA%B8%B0-18%ED%8E%B8-IP-Header-IP%ED%97%A4%EB%8D%94-%EA%B5%AC%EC%A1%B0)
