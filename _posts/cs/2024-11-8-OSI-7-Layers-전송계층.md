@@ -1,7 +1,7 @@
 ---
 title: OSI 7 Layer - 전송 계층과 TCP
 author: blakewoo
-date: 2024-11-10 22:00:00 +0900
+date: 2024-11-10 19:00:00 +0900
 categories: [Computer science]
 tags: [Computer science, Network] 
 render_with_liquid: false
@@ -34,18 +34,65 @@ use_math: true
 
 캡슐화를 하는 과정에서 전송계층에서 헤더를 붙이는 방법은 두 가지가 있다.
 
-### 1) TCP
-※ 추가 포스팅 예정
+### 1) TCP (Transmission Control Protocol)
+신뢰성을 보장하는 통신방법이다. TCP 헤더는 아래와 같다.
 
-#### 3-way handshake
-※ 추가 포스팅 예정
+![img.png](/assets/blog/cs/network/osi_7_layer_transmission/img.png)
 
+- Source/Destination Port Number : 송수신측 포트 번호
+- Sequence Number : 바이트 단위로 구분되어 순서화 되는 번호이다.
+- Acknowledgement Number : 확인응답 번호
+- HLEN : 헤더 길이 필드(Header length)
+- URG, ACK, PSH, RST, SYN, FIN : 데이터 제어 관리 플래그(3-way handshake, 송신 종료 알림)
+- Window size : 윈도우 크기 (슬라이딩 윈도우)
+- Checksum : 헤더 데이터에 문제가 없는지 확인하는 체크섬
+- Urgent pointer : TCP 세그먼트에 초함된 긴급 데이터의 마지막 바이트에 대한 일련 번호
+- Option and Padding : TCP 관련 옵션을 최대 40바이트까지 설정 가능
 
-### 2) UDP
-※ 추가 포스팅 예정
+#### a. 확인 응답 번호
+※ 추가 업데이트 예정
+
+#### b. 슬라이딩 윈도우
+※ 추가 업데이트 예정
+
+#### c. TCP 연결 시작 (3-way handshake)
+송신측에서 데이터를 보내기전에 수신측이 준비가 되었는지 확인하는 과정이다.
+
+절차는 아래와 같다.
+
+1. 송신측에서 수신측으로 SYN을 보낸다.   
+![img_2.png](/assets/blog/cs/network/osi_7_layer_transmission/img_2.png)
+
+2. 수신측에서 송신측으로 SYN-ACK을 보낸다.    
+![img_3.png](/assets/blog/cs/network/osi_7_layer_transmission/img_3.png)
+
+3. 송신측에서 수신측으로 ACK를 보내고 데이터를 전송한다.    
+![img_4.png](/assets/blog/cs/network/osi_7_layer_transmission/img_4.png)
+
+#### d. TCP 연결 종료
+
+1. 송신 측에서 수신 측으로 FIN을 보낸다.      
+![img_5.png](/assets/blog/cs/network/osi_7_layer_transmission/img_5.png)
+
+2. 수신 측에서 송신 측으로 ACK을 보낸다.    
+![img_6.png](/assets/blog/cs/network/osi_7_layer_transmission/img_6.png)
+
+3. 송신 측에서 수신 측으로 FIN을 보낸다.    
+![img_7.png](/assets/blog/cs/network/osi_7_layer_transmission/img_7.png)
+
+4. 수신 측에서 수신 측으로 ACK을 보낸다.    
+![img_8.png](/assets/blog/cs/network/osi_7_layer_transmission/img_8.png)
+
+### 2) UDP (User Datagram Protocol)
+
+![img_1.png](/assets/blog/cs/network/osi_7_layer_transmission/img_1.png)
+
+- Source Port/Destination Port : 송수신 포트
+- Length : 패킷 전체 길이
+- Checksum : 패킷 전체 체크섬
 
 ## 3. 다중 연결을 유지하는 법
-※ 추가 포스팅 예정
+한 개의 컴퓨터에 다수의 연결을 유지하기 위해서는 개요에서 설명했던 것과 같이 Port를 사용한다.
 
 ### 1) Port
 포트 번호는 0에서 65535까지 사용할 수 있다.
