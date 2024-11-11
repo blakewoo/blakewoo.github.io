@@ -40,20 +40,52 @@ use_math: true
 ![img.png](/assets/blog/cs/network/osi_7_layer_transmission/img.png)
 
 - Source/Destination Port Number : 송수신측 포트 번호
-- Sequence Number : 바이트 단위로 구분되어 순서화 되는 번호이다.
-- Acknowledgement Number : 확인응답 번호
+- Sequence Number : 일련번호, 바이트 단위로 구분되어 순서화 되는 번호이다.
+- Acknowledgement Number : 확인 응답 번호
 - HLEN : 헤더 길이 필드(Header length)
 - URG, ACK, PSH, RST, SYN, FIN : 데이터 제어 관리 플래그(3-way handshake, 송신 종료 알림)
-- Window size : 윈도우 크기 (슬라이딩 윈도우)
+- Window size : 세그먼트의 크기
 - Checksum : 헤더 데이터에 문제가 없는지 확인하는 체크섬
 - Urgent pointer : TCP 세그먼트에 초함된 긴급 데이터의 마지막 바이트에 대한 일련 번호
 - Option and Padding : TCP 관련 옵션을 최대 40바이트까지 설정 가능
 
-#### a. 확인 응답 번호
-※ 추가 업데이트 예정
+#### a. 일련번호와 확인 응답 번호 (Sequence Number, Acknowledgement Number)
+데이터의 시작과 끝을 구분하기 위해 있는 것으로 송신측과 수신측에서 각기 쓰이는 의미가 다르다.
 
-#### b. 슬라이딩 윈도우
-※ 추가 업데이트 예정
+- 송신측   
+  일렵 번호 : 현재 보내는 데이터의 시작 번호     
+  확인 응답 번호 : 전체 데이터의 끝 번호    
+
+- 수신측    
+  일련 번호 : 전체 데이터의 끝 번호     
+  확인 응답 번호 : 현재까지 받은 데이터의 끝 번호
+
+이러한 일련번호와 확인 응답 번호는 아래의 윈도우 사이즈와 같이 쓰인다.
+
+#### b. 윈도우 사이즈와 슬라이딩 윈도우
+한번에 전송하는 데이터의 단위를 세그먼트(Segment)라고 한다.
+여기서 말하는 윈도우 크기는 세그먼트를 일시적으로 저장하는 버퍼의 한계 크기이다.   
+
+이 세그먼트가 너무 작으면 송수신측에서 너무 빈번하게 데이터를 보내야한다.
+세그먼트가 너무 크면 수신측에서 데이터를 받기 어려울 수 있다.
+그렇기 때문에 실질적인 전송 이전에 수신측의 윈도우 크기에 송신측의 윈도우 크기를 맞추어 설정한다.
+
+윈도우 크기를 맞춰서 조정한 뒤 한번에 처리할 수 있는 양을 정해두고 아래와 같이 움직인다.
+
+![img.png](/assets/blog/cs/network/osi_7_layer_transmission/img_9.png)
+
+송신측에서 1 ~ 4까지 전송 준비가 되어있음 (빨간 색 네모가 윈도우)
+
+![img_1.png](/assets/blog/cs/network/osi_7_layer_transmission/img_10.png)
+
+데이터 1,2를 전송하고 3,4는 아직 전송하지 않았음
+
+![img_2.png](/assets/blog/cs/network/osi_7_layer_transmission/img_11.png)
+
+전송한 데이터 1,2에 대해서 ACK를 받았고 ACK 된 만큼 윈도우를 이동
+
+위와 같이 한번에 처리하는 방식을 슬라이딩 윈도우 방식이라고 한다.
+
 
 #### c. TCP 연결 시작 (3-way handshake)
 송신측에서 데이터를 보내기전에 수신측이 준비가 되었는지 확인하는 과정이다.
@@ -90,6 +122,14 @@ use_math: true
 - Source Port/Destination Port : 송수신 포트
 - Length : 패킷 전체 길이
 - Checksum : 패킷 전체 체크섬
+
+UDP의 경우 TCP와는 달린 신뢰성이 낮다. 이는 위의 헤더만 봐도 알 수 있는데
+메세지가 제대로 도착했는지 확인하지 않으며, 수신된 데이터의 순서를 맞추지 않고 흐름제어 역시 없다.
+Checksum을 제외한 오류제어 기능 역시 없다.
+
+대체 이런 통신 방식을 어디에 쓰는가 싶지만 이는 확인 및 흐름제어같은 기능이 빠져있기 때문에
+TCP에 비해 굉장히 빠르다. 그 때문에 빠른 요청과 응답이 필요한 실시간 응용에 적합하며
+일 대 다 전송에 좋다. 따라서 미디어 스트리밍과 같은 것에 많이 사용된다.
 
 ## 3. 다중 연결을 유지하는 법
 한 개의 컴퓨터에 다수의 연결을 유지하기 위해서는 개요에서 설명했던 것과 같이 Port를 사용한다.
