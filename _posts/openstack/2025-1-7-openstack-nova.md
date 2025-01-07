@@ -23,7 +23,7 @@ OPENSTACK에서 진행하는 프로젝트 중 NOVA는 컴퓨터 인스턴스 (�
 
 프로젝트 대부분이 Python 코드로 이루어져있으며 큰 구조는 아래와 같다.
 
-![img.png](../../assets/blog/openstack/nova/img.png)   
+![img.png](/assets/blog/openstack/nova/img.png)   
 출처 : https://docs.openstack.org/nova/latest/admin/architecture.html
 
 왼쪽 위에 범례를 보면 잘 나와있지만 육각형은 NOVA를 제외한 서비스이고, 사각형은 NOVA 서비스이다.
