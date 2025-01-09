@@ -57,7 +57,7 @@ API 엔드포인트는 Amazon, Rackspace 및 관련 모델에서 다양한 API �
 릴리즈 버전들을 올려둔 공식 사이트이다.
 소스코드를 받아와보면 여러 폴더들이 있다.
 
-![img.png](../../assets/blog/openstack/nova/img1.png)
+![img.png](/assets/blog/openstack/nova/img1.png)
 
 실질적인 코드는 nova 폴더안에 있는 파일들이다.    
 각 기능별로 구분되어있으며 전체를 다 살펴보기엔 시간이 많이 걸릴 것 같으니 주요한 부분만 살펴보겠다.
