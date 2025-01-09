@@ -1,5 +1,5 @@
 ---
-title: Devstack 설치 및 간단한 운용
+title: Devstack 설치
 author: blakewoo
 date: 2025-1-8 17:40:00 +0900
 categories: [Trial and error]
