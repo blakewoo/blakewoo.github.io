@@ -23,7 +23,7 @@ DevStack은 git master의 모든 최신 버전을 기반으로 완전한 OpenSta
 - Swift : 객체 스토리지
 - Glance : 이미지 서비스
 - Cinder : 블록 스토리지
-- Nova : 컴퓨팅 가상화 관리 서비스
+- [Nova](https://blakewoo.github.io/posts/openstack-nova/) : 컴퓨팅 가상화 관리 서비스
 - Placement : 컴퓨팅 지표
 - Neutron : 네트워킹
 - Horizon : 대시 보드
@@ -119,7 +119,7 @@ devstack 프로젝트 안에는 stack.sh 말고도 devstack을 중단시키는 u
 ./stack.sh
 ```
 
-Q. 뜨긴 뜨는데 font가 깨진다.
+Q. 뜨긴 뜨는데 DASHBOARD에서 몇몇 아이콘이 깨진다.
 
 A. apache2에서 라우팅하는 부분을 수정해주면 된다.
 horizon에서 해당 부분의 경로처리가 잘못되어서 생기는 문제다.
