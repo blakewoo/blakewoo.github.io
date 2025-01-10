@@ -53,7 +53,7 @@ API 엔드포인트는 Amazon, Rackspace 및 관련 모델에서 다양한 API �
 메세징 라이브러리로 서버와 클라이언트간에 프로시저 호출을 하거나, 혹은 이벤트 알림을 발행하는데 사용되는 라이브러리이다.
 
 ## 3. 소스코드 구조
-기본적으로 Openstack nova의 소스코드는 [이곳](https://releases.openstack.org/teams/nova.html)에서 받을 수 있다.
+기본적으로 Openstack nova의 소스코드는 [이곳](https://releases.openstack.org/teams/nova.html) 에서 받을 수 있다.
 릴리즈 버전들을 올려둔 공식 사이트이다.
 소스코드를 받아와보면 여러 폴더들이 있다.
 
