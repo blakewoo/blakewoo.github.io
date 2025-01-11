@@ -144,6 +144,11 @@ API 엔드포인트는 Amazon, Rackspace 및 관련 모델에서 다양한 API �
 - **역할**: Nova API의 WSGI(Web Server Gateway Interface) 관련 코드.
 - **내용**: API 요청 라우팅, WSGI 애플리케이션 정의.
 
+## ※ 추가 예정 사항
+- 아직 코드를 완전히 보지 못해서 어떻게 하이퍼바이저와 통신하여 인스턴스를 만드는지 명확히 알지 못한다.(하이퍼 바이저에서 지원하는지? 혹은
+  별도의 드라이버를 사용하는지) 이 부분은 추가적으로 업데이트 할 예정이다.
+
+
 # 참고문헌
 - [오픈스택 - OpenStack Compute (nova)](https://docs.openstack.org/nova/latest/)
 - [오픈스택 - Nova System Architecture](https://docs.openstack.org/nova/latest/admin/architecture.html)  
