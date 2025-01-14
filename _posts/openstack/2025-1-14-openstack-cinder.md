@@ -1,7 +1,7 @@
 ---
 title: OPENSTACK - Cinder
 author: blakewoo
-date: 2025-1-14 15:00:00 +0900
+date: 2025-1-14 16:50:00 +0900
 categories: [Openstack]
 tags: [Openstack, cinder] 
 render_with_liquid: false
@@ -59,9 +59,102 @@ Block Storage 클라이언트를 호출하는 Compute의 EC2 인터페이스를 
 ### 4) cinder-backup
 블록 스토리지 볼륨을 OpenStack Object Storage(swift)에 백업하는 수단을 제공한다.
 
+## 3. 소스코드 구조
+기본적으로 Openstack cinder의 소스코드는 [이곳](https://releases.openstack.org/teams/cinder.html) 에서
+받을 수 있다. 릴리즈 버전들을 올려둔 공식 사이트이다.
+소스코드를 받아와보면 여러 폴더들이 있다.
 
+실질적인 소스는 cinder 폴더에 포함되어있으며 내용은 아래와 같다. 
+
+### api
+- **역할** : API 처리
+- **내용** : Cinder의 API 요청을 처리하는 모듈로 외부 요청을 수신하고 처리한다.
+
+### backup
+- **역할** : 블록 스토리지 백업
+- **내용** : 블록 스토리지 볼륨 백업에 관련된 기능을 처리하며 Object Storage(Swift)를 활용하여 백업을 관리한다.
+
+### brick
+- **역할** : 블록 스토리지 장치 연결
+- **내용** : iSCSI와 같은 블록 스토리지 장치 연결 및 데이터 전송을 관리했었는데, os-brick이라는 pypi library로 이관되었다.
+
+### cmd
+- **역할** : 명령줄 유틸리티
+- **내용** : Cinder 서비스 실행에 사용되는 명령줄 유틸리티를 포함한다. 예: `cinder-volume`, `cinder-api` 실행 명령
+
+### common
+- **역할** : 공통 유틸리티와 그외 잡다한 라이브러리
+- **내용** : 통신을 위한 패키지나 cors를 방지하는 미들웨어 같은 공용 유틸리티가 포함되어있다.
+
+### compute
+- **역할** : Nova 서비스와 통합
+- **내용** : Nova 서비스와 같이 사용할 수 있게 연결해주는 코드가 포함되어있다.
+
+### db
+- **역할** : DB Access
+- **내용** : 스냅샷, 볼륨 생성 및 삭제 등에 대해 DB에 기재 및 읽어들이기 위한 코드
+
+### group
+- **역할** : 볼륨 그룹
+- **내용** : 그룹 볼륨 매니저와 상호 작용하기 위한 코드
+
+### image
+- **역할** : Glance 서비스와 통합
+- **내용** : Glance의 image와 volume 서비스를 연결하기 위한 코드
+
+### interface
+- **역할** : 인터페이스 정의
+- **내용** : 볼륨 드라이버와 백업 드라이버, fibre channel zone manager 드라이버의 interface 정의
+
+### keymgr
+- **역할** : 키 매니저와의 연동
+- **내용** : Cinder 서비스와 키 매니저의 연동을 위한 코드
+
+### locale
+- **역할** : 다국어 지원
+- **내용** : 다국어 지원을 위한 번역 파일이 포함되어있다.
+
+### message
+- **역할** : 사용자 메세지 관리 기능
+- **내용** : 사용자의 작업에 따라 미리 정의된 메세지를 전달한다. 에러가 났을 때 어디서 에러가 났는지 알 수 있다.
+
+### objects
+- **역할** : 각 DB 데이터 구조 정의
+- **내용** : 데이터베이스 모델과 연결된 ORM(Object-Relational Mapping) 클래스 및 Cinder 데이터 구조를 정의한다.
+
+### policies
+- **역할** : 정책 파일과 권한 제어를 담당
+- **내용** : 정책 파일과 권한 제어를 담당한다. 예를 들자면 액세스 권한 및 작업 제한 정의 같은 것들이 있다.
+
+### privsep
+- **역할** : 시스템에 관련된 부분을 처리
+- **내용** : nvmet, scst, tgt, cgroup, format_inspector, fs, lvm, path에 관련된 부분을 처리한다.
+
+### scheduler
+- **역할** : 볼륨 작업 스케줄러
+- **내용** : 요청된 볼륨 생성 및 작업을 적절한 스토리지 노드로 라우팅하는 스케줄링 작업을 수행한다.
+
+### tests
+- **역할** : 테스트 코드
+- **내용** : 테스트 하기 위한 코드들
+
+### transfer
+- **역할** : 볼륨 전송
+- **내용** : 볼륨 전송(소유권 이전)과 관련된 작업을 처리한다.
+
+### volume
+- **역할** : 블록 스토리지 볼륨 관리
+- **내용** : 블록 스토리지 볼륨의 생성, 삭제, 연결 및 복제 작업을 관리한다.
+
+### wsgi
+- **역할** : WSGI 서버와 관련된 코드
+- **내용** : Cinder의 WSGI 애플리케이션을 관리하며 API 요청의 진입점을 제공한다.
+
+### zonemanager
+- **역할** : Fibre Channel zone manage
+- **내용** : Fibre Channel zone 관리 작업을 처리합니다.
 
 
 # 참고문헌
 - [오픈스택 - Introduction to the Block Storage service](https://docs.openstack.org/cinder/latest/configuration/block-storage/block-storage-overview.html)
-
+- [오픈스택 - cinder 소스코드](https://tarballs.openstack.org/cinder/cinder-25.0.0.tar.gz)
