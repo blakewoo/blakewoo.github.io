@@ -152,7 +152,7 @@ Block Storage 클라이언트를 호출하는 Compute의 EC2 인터페이스를 
 
 ### zonemanager
 - **역할** : Fibre Channel zone manage
-- **내용** : Fibre Channel zone 관리 작업을 처리합니다.
+- **내용** : Fibre Channel zone 관리 작업을 처리한다.
 
 
 # 참고문헌
