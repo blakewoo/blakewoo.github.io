@@ -107,7 +107,7 @@ SERVICE_PASSWORD=$ADMIN_PASSWORD
 
 #### ※ 트러블 슈팅
 
-Q. localhost나 ip로 접속했는데 Dashboard 화면이 뜨지 않는다.   
+#### Q. localhost나 ip로 접속했는데 Dashboard 화면이 뜨지 않는다.   
 
 A. 그냥 다시 까는게 속시원하다.   
 devstack 프로젝트 안에는 stack.sh 말고도 devstack을 중단시키는 unstack.sh과
@@ -119,7 +119,7 @@ devstack 프로젝트 안에는 stack.sh 말고도 devstack을 중단시키는 u
 ./stack.sh
 ```
 
-Q. 뜨긴 뜨는데 DASHBOARD에서 몇몇 아이콘이 깨진다.
+#### Q. 뜨긴 뜨는데 DASHBOARD에서 몇몇 아이콘이 깨진다.
 
 A. apache2에서 라우팅하는 부분을 수정해주면 된다.
 horizon에서 해당 부분의 경로처리가 잘못되어서 생기는 문제다.
@@ -145,6 +145,32 @@ font 데이터를 "/dashboard/static"이 아닌 "/static"로 요청해서 생기
 
 > ※ 본 해결법은 임시 조치에 가깝다. 문제 파악 후 좀 더 확실한 해결법을 업데이트 할 예정이다.
 {: .prompt-tip }
+
+
+
+#### Q. 되긴 되는데 엄청 느리다.   
+
+최근 나온 모든 CPU는 모두 가상화 기능을 지원한다.   
+문제는 이 기능이 켜져있냐 아니냐가 문제다.
+만약 이 기능이 꺼져있다면 KVM이 아닌 QEMU를 이용해서 소프트웨어적으로 에뮬레이션되어 가상화가 구동된다.
+당연하지만 KVM은 Kernel에 아예 포함되어있고 QEMU는 하드웨어를 소프트웨어적으로 에뮬레이션 하는거라 QEMU가 더 느리다.
+따라서 KVM을 사용할 수 있게 켜주면 성능이 훨씬 개선된다.
+
+이는 BIOS 설정에 들어가서 건드릴 수 있는데 메인보드 개발사마다 바이오스 화면이 다르다.
+사용자 개인이 BIOS 설정에 들어가 CPU 고급 설정에 포함되어있는 가상화 기능을 키는 수밖에 없다.
+
+ubuntu라면 아래의 명령어로 KVM이 켜져있는지 아닌지 확인해보면 된다.
+```shell
+kvm-ok
+```
+
+만약 가능하다면 아래와 같은 내용이 출력될 것이다.
+```
+INFO: /dev/kvm exists
+KVM acceleration can be used
+```
+
+이후 ./stack 명령어로 다시 devstack을 구동해주면 KVM이 자동으로 잡혀서 실행 될 것이다.
 
 
 # 참고문헌
