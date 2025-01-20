@@ -173,6 +173,36 @@ apt-get install rinetd
 ![img_16.png](/assets/blog/trial_error/devstack/simple_usage/img_16.png)
 
 
+## ※ 트러블 슈팅
+
+### Q. 생성된 Instance에서 IP ping은 나가는데 DNS로 요청하면 아래와 같이 에러가 난다.
+```
+ping: google.com: Temporary failure in name resolution
+```
+위의 문구는 google.com으로 설정했을 때이다.  
+nameserver 설정이 이상해서 그런 것이로 만약에 devstack을 설치할때 DNS 서비스인 Designate
+를 깔았다면 Designate 도메인 지정을 넣으면 되고, 만약 DNS를 설정하지 않았다면 직접
+nameserver를 바꾸어주어야한다.
+
+/etc/resolv.conf 파일을 확인하면 아마 아래와 같이 설정되어있을 가능성이 있다.
+```
+nameserver 127.0.0.1
+options edns0 trust-ad
+search .
+```
+
+루프백일수도 있고 별도의 ip일수도 있다. 이런 경우 그냥 nameserver를 흔히 아는 dns 주소로
+변경해주면 된다.
+
+나는 아래와 같이 설정했다
+```
+nameserver 8.8.8.8
+options edns0 trust-ad
+search .
+```
+
+구글 dns 서버로 위와 같이 설정하면 잘 작동한다.
+
 
 # 참고문헌
 - [OPENSTACK - DEVSTACK](https://docs.openstack.org/devstack/latest/index.html)
