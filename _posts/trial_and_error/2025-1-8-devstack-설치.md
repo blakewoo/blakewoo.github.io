@@ -20,13 +20,13 @@ DevStack은 git master의 모든 최신 버전을 기반으로 완전한 OpenSta
 
 오픈 스택 공식 웹페이지에서 설명하는 Devstack이란 무엇인가에 대한 설명이다. 기본적으로 아래의 서비스를 포함하고 있다.
 - [Keystone](https://blakewoo.github.io/posts/openstack-keystone/) : 인증
-- Swift : 객체 스토리지
+- [Swift](https://blakewoo.github.io/posts/openstack-swift/) : 객체 스토리지
 - [Glance](https://blakewoo.github.io/posts/openstack-glance/) : 이미지 서비스
 - [Cinder](https://blakewoo.github.io/posts/openstack-cinder/) : 블록 스토리지
 - [Nova](https://blakewoo.github.io/posts/openstack-nova/) : 컴퓨팅 가상화 관리 서비스
-- Placement : 컴퓨팅 지표
+- [Placement](https://blakewoo.github.io/posts/openstack-placement/) : 컴퓨팅 지표
 - [Neutron](https://blakewoo.github.io/posts/openstack-neutron/) : 네트워킹
-- Horizon : 대시 보드
+- [Horizon](https://blakewoo.github.io/posts/openstack-horizon/) : 대시 보드
 
 그 외의 패키지는 아래와 같은 서비스를 이용한다
 - MySQL : DB 
