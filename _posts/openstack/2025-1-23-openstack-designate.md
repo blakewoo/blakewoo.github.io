@@ -25,7 +25,7 @@ OpenStack Identity Service(Keystone)를 사용한다. DNS 이름 서버의 소�
 ## 2. 구조
 Designate 공식 문서에 나와있는 구조는 아래와 같다.
 
-![img.png](img.png)   
+![img.png](/assets/blog/openstack/designate/img.png)    
 출처 : https://docs.openstack.org/designate/latest/_images/Designate-Arch.png
 
 ### 1) Designate API
