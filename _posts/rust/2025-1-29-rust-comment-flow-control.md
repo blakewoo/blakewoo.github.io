@@ -1,5 +1,5 @@
 ---
-title: Rust - 함수
+title: Rust - 주석과 흐름 제어
 author: blakewoo
 date: 2025-1-28 23:00:00 +0900
 categories: [Rust]
