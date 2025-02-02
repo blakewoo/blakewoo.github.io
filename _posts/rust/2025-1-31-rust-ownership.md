@@ -124,6 +124,78 @@ fn main() {
 중괄호를 기준으로 s1이 scope를 벗어났기 때문에 값이 버려져서 원래 생성되어있던 ```String::from("hello");```값은
 사용할 수 없다.
 
+## 2. 참조와 대여
+위에서 스택에 있는 값이 아닌 힙에 있는 데이터를 사용할 때 이동이 일어난다고 했다.
+이 경우는 함수에 인자로 넘길 때도 동일한 일이 생긴다. 아래의 경우가 그러한 예시이다.
+
+```rust
+fn main() {
+    let s1 = String::from("hello"); // String 타입의 hello가 생성
+
+    let s2 = something_doing(s1);  // hello 데이터의 소유권인 somting_doing으로 넘어감
+    
+    // 해당 위치에서는 s1을 사용 할 수 없음, 소유권 이전되어버림
+} 
+
+fn something_doing(a_string: String) -> String { 
+    a_string  // 입력 받은 a_string을 반환
+}
+```
+
+하지만 함수에 인자로 넘겨준 이후에도 해당 값을 계속 사용해야할때가 있다.
+이때 필요한 것이 바로 참조자(reference)라는 것이다.
+참조자 (reference) 는 해당 주소에 저장된 데이터에 접근할 수 있도록 해주는 주솟값에 해당하는, 포인터와 같은 것이다.
+아래의 예시를 살펴보자.
+
+```rust
+fn main() {
+    let s1 = String::from("hello");
+
+    let len = calculate_length(&s1);
+
+    println!("The length of '{}' is {}.", s1, len);
+}
+
+fn calculate_length(s: &String) -> usize {
+    s.len()
+}
+```
+
+위의 코드와 달리 인자 부분에 & 문자가 들어간 것을 알 수 있다. 또한 함수 선언부에도 &가 있는 것을 확인할 수 있다.
+이렇게 선언해두면 s1에 대해 참조자가 넘어가서 이후에도 s1을 그대로 사용할 수 있다.
+이렇게 참조자를 만드는 것을 대여라고 한다.
+
+일반적으로 참조자를 이용해서 값을 넘긴 것은 수정할 수 없다.   
+따라서 아래의 코드는 컴파일시 에러를 반환한다.
+
+```rust
+fn main() {
+    let s = String::from("hello");
+
+    change(&s);
+}
+
+fn change(some_string: &String) {
+    some_string.push_str(", world");
+}
+```
+
+만약에 해당 값을 변경하고 싶다면 참조자의 값을 변경가능한 형태로 선언해야한다.
+이를 가변 참조자라고 하며 선언방법은 아래와 같다.
+
+```rust
+fn main() {
+    let mut s = String::from("hello");
+
+    change(&s);
+}
+
+fn change(some_string: &String) {
+    some_string.push_str(", world");
+}
+```
+
+
 > ※ 본 포스팅은 추가적으로 업데이트 될 예정이다.
 {: .prompt-tip }
 
