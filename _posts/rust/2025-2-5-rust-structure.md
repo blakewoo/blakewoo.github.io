@@ -174,5 +174,100 @@ fn main() {
 }
 ```
 
+## 2. 메서드
+구조체안에 함수를 넣을 수도 있다. 이런 함수는 연관 함수(associated function)라고 부른다.
+연관 함수는 구조체 자기자신을 인자로 가질수 있는 이런 함수는 메서드(Method)라고 부른다.
+
+아래의 예시를 보자
+```rust
+#[derive(Debug)]
+struct Location {
+    x: u32,
+    y: u32
+}
+
+impl Location{
+    fn distance(&self) -> f64 {
+        let sum = self.x as f64 + self.y as f64;
+        sum.sqrt()
+    }
+}
+
+fn main() {
+    let point = Location {
+        x:1,
+        y:2
+    };
+
+    println!("{}",point.distance())
+}
+```
+
+Location이라는 구조체를 선언하였고 impl 식별자를 이용하여 Location 구조체에
+거리를 계산하는 distance 함수를 추가하였다.
+&self 값을 인자로 줌으로써 현재 있는 구조체의 값을 ```self.``` 형태로 불러와서 사용할 수 있다. 
+
+이렇게 impl를 이용하여 구조체에 함수를 추가 할 수 있으며 꼭 한 개의 impl만 있을
+필요는 없다.
+
+```rust
+#[derive(Debug)]
+struct Location {
+    x: u32,
+    y: u32
+}
+
+impl Location{
+    fn distance(&self) -> f64 {
+        let sum = self.x as f64 + self.y as f64;
+        sum.sqrt()
+    }
+}
+
+impl Location{
+    fn read_x(&self) -> u32 {
+        self.x
+    }
+        
+    fn read_y(&self) -> u32 {
+        self.y
+    }
+}
+
+fn main() {
+    let point = Location {
+        x:1,
+        y:2
+    };
+
+    println!("{}",point.distance())
+}
+```
+
+모든 연관 함수가 method 일 필요는 없다. 즉, 구조체 자기자신을 인자로 가질 필요는 없다.    
+이런 경우는 구조체의 새 인스턴스를 반환하는 생성자로 자주 활용된다.    
+생성자로 사용하는 예시는 아래와 같다.
+
+```rust
+#[derive(Debug)]
+struct Location {
+  x: u32,
+  y: u32
+}
+
+impl Location{
+  fn x_is_y(position: u32) -> Self  {
+    Self  {
+        x:position,
+        y:position
+    }
+  }
+}
+fn main() {
+  let xy = Location::x_is_y(1);
+}
+```
+
+
 # 참고문헌
 - [The Rust Programming Language - 구조체 정의 및 인스턴스화](https://doc.rust-kr.org/ch05-01-defining-structs.html) 
