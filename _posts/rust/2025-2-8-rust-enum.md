@@ -68,10 +68,79 @@ enum IpAddr {
 
 이는 열거형에는 어떤 형태의 데이터라도 넣을수 있기 때문이다.
 
-> ※ 포스팅 추가 예정
+## 2. match 제어흐름
+다음 열거형에 따라 해당 값이 어떤 값인지 받고 그 값에 따라 다른 코드를 실행시킬 수 있다.   
+아래의 예시 코드를 보자.
+
+```rust
+enum Coin {
+    Penny,
+    Nickel,
+    Dime,
+    Quarter,
+}
+
+fn value_in_cents(coin: Coin) -> u8 {
+    match coin {
+        Coin::Penny => {
+            println!("Lucky penny!");
+            1
+        }
+        Coin::Nickel => 5,
+        Coin::Dime => 10,
+        Coin::Quarter => 25,
+    }
+}
+
+fn main() {}
+```
+
+match 식별자 이후 값을 비교하고 싶은 변수 값을 넣고 중괄호안에는 해당 값이
+어떤 타입인지에 따라 반환 값이 다르다.   
+짧게 쓰려면 중괄호를 생략하고 콤마로 구분할 수 있지만 2줄 이상 쓰기 위해서는 중괄호로 묶어야한다.
+
+혹은 열거형 안에 열거형을 통해서 match를 처리할 수도 있다.   
+아래의 코드를 보자.
+
+```rust
+#[derive(Debug)]
+enum UsState {
+    Alabama,
+    Alaska,
+    // --생략--
+}
+
+enum Coin {
+    Penny,
+    Nickel,
+    Dime,
+    Quarter(UsState),
+}
+
+fn value_in_cents(coin: Coin) -> u8 {
+    match coin {
+        Coin::Penny => 1,
+        Coin::Nickel => 5,
+        Coin::Dime => 10,
+        Coin::Quarter(state) => {
+            println!("State quarter from {:?}!", state);
+            25
+        }
+    }
+}
+
+fn main() {
+    value_in_cents(Coin::Quarter(UsState::Alaska));
+}
+```
+
+미국의 각 주마다 Quarter는 모양이 다르다고 한다.   
+이런 상황을 코드로 표현하고자 할 때 Coin의 Quarter는 UsState, 즉 미국의 주에 대한 정보를 넣음으로써
+별도로 처리해 줄 수 있다. 위 코드는 그 부분을 추가한 코드이다.
+
+> ※ 본 포스팅은 추가적으로 업데이트 될 예정이다.
 {: .prompt-tip }
-
-
 
 # 참고문헌
 - [The Rust Programming Language - 열거형 정의하기](https://doc.rust-kr.org/ch06-01-defining-an-enum.html) 
+- [The Rust Programming Language - match 제어흐름 구조](https://doc.rust-kr.org/ch06-02-match.html)
