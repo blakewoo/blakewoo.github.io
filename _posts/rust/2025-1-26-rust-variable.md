@@ -9,8 +9,6 @@ render_with_liquid: false
 
 # Rust 문법
 
-> ※ 본 포스팅은 추가적으로 업데이트 될 예정이다.
-{: .prompt-tip }
 
 ## 1. 변수와 가변성
 Rust에서 변수는 기본적으로 불변형이다.   
