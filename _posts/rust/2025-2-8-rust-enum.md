@@ -180,3 +180,4 @@ fn main() {
 # 참고문헌
 - [The Rust Programming Language - 열거형 정의하기](https://doc.rust-kr.org/ch06-01-defining-an-enum.html) 
 - [The Rust Programming Language - match 제어흐름 구조](https://doc.rust-kr.org/ch06-02-match.html)
+- [The Rust Programming Language - if let을 이용한 간결한 제어흐름](https://doc.rust-kr.org/ch06-03-if-let.html)
