@@ -138,6 +138,42 @@ fn main() {
 이런 상황을 코드로 표현하고자 할 때 Coin의 Quarter는 UsState, 즉 미국의 주에 대한 정보를 넣음으로써
 별도로 처리해 줄 수 있다. 위 코드는 그 부분을 추가한 코드이다.
 
+## 3. option 열거형
+아래의 열거형은 표준 라이브러리에 정의된 열거형이다.
+
+```rust
+enum Option<T> {
+    None,
+    Some(T),
+}
+```
+
+이는 이후 언급할 제네릭 타입의 자료형인데, 다른 언어들에게서 볼 수 있는 null을 구현하는데 쓰인다.
+이 null이란 현재 어떠한 이유로 인해 유효하지 않거나, 존재하지 않는 하나의 값을 표기할때 사용하는데   
+다른 언어에서 무분별한 null 사용으로 문제가 컸기에 rust에서는 null을 대체하기 위해서 만들었다.
+
+여기서 if와 let을 이용하면 한 개만 처리하고 나머지는 무시해야하는 상황에서 간단하게 처리할 수 있다.
+if와 let을 이용하지 않는다면 아래와 같이 구현해야한다.
+```rust
+fn main() {
+    let config_max = Some(3u8);
+    match config_max {
+        Some(max) => println!("The maximum is configured to be {}", max),
+        _ => (),
+    }
+}
+```
+하지만 if 와 let을 사용한다면 아래와 같이 간단하게 구현 가능하다.
+
+```rust
+    let config_max = Some(3u8);
+    if let Some(max) = config_max {
+        println!("The maximum is configured to be {}", max);
+    }
+
+```
+
+
 > ※ 본 포스팅은 추가적으로 업데이트 될 예정이다.
 {: .prompt-tip }
 
