@@ -39,19 +39,15 @@ QEMU를 대체하여 운용되며 특정 부분의 요청을 Firecracker가 처�
 Firecracker는 Unix API를 통해 제어되며 오버헤드가 5MB 이하이고, 어플리케이션이 부트되는데 125ms 이하의 시간이 들며 초당 150개의   
 MicroVM을 만들 수 있다. 따라서 빠른 구동이 필요한 FaaS에 적합하다고 말한다.
 
-Firecracker를 통해 만들어진 microVM은 몇몇 기능은 의도적으로 제공하지 않는데, 이는 필요한 부분만 만들어서 사용함으로써
-빠른 구동에만 초점을 둔 탓이다.
-따라서 Firecracker에서는 BIOS를 제공하지 않으며, 임의의 커널을 부팅할 수 없고, 레거시 장치나 PCI를 에뮬레이션하지 않으며,
-VM 마이그레이션을 지원하지 않는다. 또한 Microsoft Windows를 부팅할 수 없다.
-
 ### 2) 구성
+firecracker는 Google의 Chrome OS Virtual Machine Monitor인 crosvm에서 시작하여 많은 코드를 제거하고 수정하여 만들었다.
 firecracker는 기본적으로 KVM을 통해 linux를 Hypervisor로 사용하며, QEMU를 대신하여 구동된다.
 아래 그림은 논문과 공식 홈페이지, 공식 git의 문서를 참조하여 재구성한 그림이다.
 
 ![img.png](/assets/blog/paper/firecracker/img.png)
 
 기본적으로 linux에서 돌아가되 firecracker에 포함된 API 관련 thread에서 모든걸 제어한다.
-이 RESTful API Thread에서 VMM에 달려있는 성능 제한과 IMDS를 제어하며 microVM의 필요한 기능들을
+이 RESTful API Thread에서 VMM에 달려있는 성능 제한(Cpu core, Memory, IOPS, 대역폭 등)과 IMDS를 제어하며 microVM의 필요한 기능들을
 VMM과 IMDS를 통해 제어한다.
 Firecracker와 Guest OS가 구동중인 VM은 jailer를 통해 격리되며 이 jailer는 microVM이 뚫렸을 때를 대비한
 2차 방어벽이다.
@@ -60,8 +56,23 @@ microVM당 하나의 Firecracker 프로세스가 구동된다. 이는 microVM을
 orchestration 하는 코드는 포함되어있지 않다. 
 이는 AWS에서 사용할때 별도로 구현한거 같으며 이를 이용해서 containerd로 제어할 수 있는 별도의 프로젝트가 있다.
 
-> ※ 본 포스팅은 추가적으로 업데이트 될 예정이다. 제대로 이해한게 맞는지 확인해야한다.
-{: .prompt-tip }
+### 3) 한계
+Firecracker를 통해 만들어진 microVM은 몇몇 기능은 의도적으로 제공하지 않는데, 이는 필요한 부분만 만들어서 사용함으로써
+빠른 구동에만 초점을 둔 탓이다.
+따라서 Firecracker에서는 BIOS를 제공하지 않으며, 임의의 커널을 부팅할 수 없고, 레거시 장치나 PCI를 에뮬레이션하지 않으며,
+VM 마이그레이션을 지원하지 않는다. 또한 Microsoft Windows를 부팅할 수 없다.
+
+### 4) 활용
+AWS의 Lambda와 Fargate에 사용한다.   
+Lambda와 Fargate 둘 다 FaaS이다. 하지만 둘의 용도는 좀 다르다.
+
+#### a. Lambda
+예약된 작업이나 이벤트 기반 애플리케이션에 적합하다. 따라서 너무 무겁고 일괄적인 작업에는 적절하지 않으며
+콜드 스타트가 100ms에서 2초이기 때문에 빠른 응답이 필요한 곳에 적합하다. 
+
+#### b. Fargate
+장기 실행을 요하는 애플리케이션에 적합하며 콜드 스타드가 35초 ~ 2분까지이고, 최대 메모리 할당량이 120GIB 이기 때문에
+묵직하고 그렇게 빠른 응답이 필요한 경우가 아닐때 쓰면 좋다.
 
 
 # 참고문헌
@@ -69,3 +80,4 @@ orchestration 하는 코드는 포함되어있지 않다.
   17th USENIX Symposium on Networked Systems Design  and Implementation (NSDI ’20) February 25–27, 2020
 - [firecracker 공식 홈페이지](https://firecracker-microvm.github.io/)
 - [firecracker 공식 github - design.md](https://github.com/firecracker-microvm/firecracker/blob/main/docs/design.md)
+- [AWS Decision guide - AWS Farget or AWS Lambda](https://docs.aws.amazon.com/decision-guides/latest/fargate-or-lambda/fargate-or-lambda.html)
