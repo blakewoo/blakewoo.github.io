@@ -20,3 +20,8 @@ package-lock.json
 
 # Misc
 assets/js/dist
+
+#backup
+_posts/.tmp.drivedownload
+_posts/.tmp.driveupload
+assets/.tmp.driveupload
