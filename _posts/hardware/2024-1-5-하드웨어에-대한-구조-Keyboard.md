@@ -2,8 +2,8 @@
 title: 하드웨어 구조 - KEYBOARD
 author: blakewoo
 date: 2024-1-5 21:40:00 +0900
-categories: [OS]
-tags: [OS]
+categories: [Hardware]
+tags: [Hardware, Keyboard]
 render_with_liquid: false
 ---
 

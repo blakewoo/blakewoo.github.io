@@ -2,8 +2,8 @@
 title: 하드웨어 구조 - 레지스터(Register)1
 author: blakewoo
 date: 2024-1-8 23:15:00 +0900
-categories: [OS]
-tags: [OS]
+categories: [Hardware]
+tags: [Hardware, Register]
 render_with_liquid: false
 ---
 
