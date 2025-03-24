@@ -2,8 +2,8 @@
 title: 컴퓨터 구조 - Power Consumption
 author: blakewoo
 date: 2025-3-11 09:00:00 +0900
-categories: [Computer science]
-tags: [Computer science, Power Consumption] 
+categories: [Computer structure]
+tags: [Computer structure, Power Consumption] 
 render_with_liquid: false
 use_math: true
 ---
