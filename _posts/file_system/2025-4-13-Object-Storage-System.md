@@ -63,6 +63,14 @@ disk queue scheduling과 같은 방식을 써도 큰 효과를 보지 못했을 
 내부 스케줄링을 위한 CPU를 가지게 되었기 때문에 운용 가능하며 IBM에서도 해당 부분을
 염두에 두고 제시한게 아닌가 싶다.
 
+또한 전통적인 Sector/LBA Interface 대신에 OSD Interface로 대체되어있는것을 알 수 있는데
+Interface가 Object 단위의 처리를 지원하며, 아래에 Storage component에서 
+Object create, delete와 인증에 대한 부분을 담당한다.
+
+이 와중에 굳이 device를 block device로 쓸 필요가 없다는 생각이 대두되었고
+데이터들을 Key-value로 관리하면 어떨까 하는 생각에서
+Key-value computation solid-state device가 등장했다.
+
 
 > ※ 내용 업데이트 및 추가적인 검증 예정
 {: .prompt-tip }
