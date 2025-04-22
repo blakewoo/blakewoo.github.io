@@ -10,8 +10,140 @@ render_with_liquid: false
 # CUDA Reduce 예제 분석
 이번 시간에는 수업중에 나온 Reduce 함수에 대한 예제를 분석해보겠다.
 
-## 1. Reduce 예제
-일단은 Reduce 함수에 대한 코드이다.
+## 1. reduce0 예제 분석
+```cuda
+// device 함수
+__global__ void reduce0(float* x, int m) {
+    int tid = blockDim.x * blockIdx.x + threadIdx.x;
+    x[tid] += x[tid + m];  
+}
+
+// host에서 호출, N은 전체 데이터 셋 개수
+for (int m = N / 2; m > 0; m /= 2) {
+    int threads = (256 < m) ? 256 : m;
+    int blocks = (m / 256 > 1) ? m / 256 : 1;
+    reduce0 << < blocks, threads >> > (d_A, m);
+}
+```
+
+reduce0 함수의 경우 절반씩 나눠가면서 전반부에 후반부 데이터를 더해간다.   
+한번에 돌아가는 thread는 m값이 256 보다 크다면 256개, 그보다 작다면 더 작은 크기로 돌아가며,
+기본적으로 N값이 2의 배수라는 가정을 두고 돌리는 것이다.
+
+![img.png](../../assets/blog/trial_error/gpu/reduce/img_2.png)
+
+결과값은 d_A[0]에 남게 된다.
+
+## 2. reduce1 예제 분석
+```cuda
+// device 함수
+__global__ void reduce1(float* x, int N) {
+    int tid = blockDim.x * blockIdx.x + threadIdx.x;
+    float tsum = 0.0f;
+    int stride = gridDim.x * blockDim.x;
+    for (int k = tid; k < N; k += stride) 
+        tsum += x[k];
+    x[tid] = tsum;
+}
+
+// host에서 호출
+reduce1 << < blocks, threads >> > (d_A, N);
+reduce1 << < 1, threads >> > (d_A, blocks * threads);
+reduce1 << < 1, 1 >> > (d_A, threads);
+```
+
+threads * blocks 개수가 전체 N개보다 작고 N개의 배수의 형태로 운용한다.
+
+![img_1.png](../../assets/blog/trial_error/gpu/reduce/img_3.png)
+
+threads * blocks를 stride로 잡고, stride 기준으로 데이터를 갖고와서 첫번째 stride 범위안의 메모리에 값을 더한다.   
+이후 두번째 커널에서는 threads * blocks 범위의 데이터를 한 개의 block안에 더한다.
+이후 세번째 커널에는 한 개의 block에 있는 모든 값을 더해서 block의 제일 첫번째 Index에 넣는다.
+
+위 함수에서 결과값은 d_A[0]에 저장된다.
+
+## 2. reduce2 예제 분석
+```cuda
+// device 함수
+__global__ void reduce2(float *y, float *x, int N) {
+	extern __shared__ float tsum[]; // dynamic shared memory 
+	int id = threadIdx.x;
+	int tid = blockDim.x * blockIdx.x + threadIdx.x;
+	int stride = gridDim.x * blockDim.x;
+
+	tsum[id] = 0.0f;
+	for (int k = tid; k < N; k += stride) tsum[id] += x[k];
+	__syncthreads();
+
+	for (int k = blockDim.x/2; k > 0; k /= 2){ // power of 2 reduction loop
+		if (id < k) tsum[id] += tsum[id + k];
+		__syncthreads();
+
+	}
+	if (id == 0) y[blockIdx.x] = tsum[0]; // store one value per block
+}
+
+// host에서 호출
+int blocks  = 256;  // power of 2
+int threads = 256;
+
+reduce2 << < blocks, threads, threads * sizeof(float) >> > (d_B, d_A, N);
+reduce2 << < 1, blocks, blocks * sizeof(float) >> > (d_A, d_B, blocks);
+```
+
+위 코드는 shared_memory를 사용한다.   
+기본적으로 위 방식도 stride를 사용하되, stride 밖의 값은 shared_memory를 이용하여 값을 더하고   
+stride 범위 안의 값은 2로 나눠가며 뒤의 값을 앞의 메모리에 더해가는 방식이다.     
+
+![img_2.png](../../assets/blog/trial_error/gpu/reduce/img_4.png)
+
+shared_memory를 썼다는 점에서 reduce0와 reduce1 방식을 mix 했다고 볼 수 있다.   
+위 함수 역시 d_A[0]에 결과값이 저장된다. 
+
+
+## 3. reduce3 예제 분석
+```cuda
+// device 함수
+
+// device only function smallest power of 2 >= n
+__device__ int pow2ceil(int n) {
+	int pow2 = 1 << (31 - __clz(n));
+	if (n > pow2) pow2 = (pow2 << 1);
+	return pow2;
+}
+
+__global__ void reduce3(float* y, float* x, int N) {
+	extern __shared__ float tsum[];
+	int id = threadIdx.x;
+	int tid = blockDim.x * blockIdx.x + threadIdx.x;
+	int stride = gridDim.x * blockDim.x;
+	tsum[id] = 0.0f;
+	for (int k = tid; k < N; k += stride) tsum[id] += x[k];
+	__syncthreads();
+	int block2 = pow2ceil(blockDim.x); // next higher power of 2
+	for (int k = block2 / 2; k > 0; k >>= 1) {     // power of 2 reduction loop
+		if (id < k && id + k < blockDim.x) tsum[id] += tsum[id + k];
+		__syncthreads();
+	}
+	if (id == 0) y[blockIdx.x] = tsum[0]; // store one value per block
+}
+
+//host에서 호출
+int blocks = 270;  // may not be a power of 2
+int threads = 256;
+
+reduce3 << < blocks, threads, threads * sizeof(float) >> > (d_B, d_A, N);
+reduce3 << < 1, blocks, blocks * sizeof(float) >> > (d_A, d_B, blocks);
+```
+
+pow2ceil 함수는 N 값보다 바로 다음 큰 2의 승수 값을 반환하는 함수이다.
+이 함수를 이용하여 reduce2와 동일하게 절반씩 나눠가면서 값을 더한다.   
+하지만 여기서 다른 점은 block의 개수를 SM의 배수로 잡는 다는 점이다.
+성능은 크게 차이가 없긴하다.
+
+## 4. reduce4 예제 분석
+#### 1) 코드
+일단은 Reduce4 함수에 대한 코드이다.
 
 ```cuda
 __global__ void reduce4(float* y, float* x, int N) {
@@ -49,13 +181,13 @@ reduce4 <<< blocks, threads, threads * sizeof(float) >>> (d_B, d_A, N);
 
 위 예제 코드를 분석 파트에서 하나씩 뜯어보겠다.
 
-## 2. 분석
+#### 2) 분석
 먼저 main 함수에서 호출되는 형태를 보자.
 ``` c++
 reduce4 <<< blocks, threads, threads * sizeof(float) >>> (d_B, d_A, N);
 ```
-reduce4는 함수이름이고, <<< 다음에 순서대로 블록 개수, 스레드 개수, 스레드 곱하기 float의 크기라고 생각하면된다.
-그리고 끝에 d_B, d_A, N은 각각 목적지 포인터라고 생각하면 된다.
+reduce4는 함수이름이고, <<< 다음에 순서대로 블록 개수, 스레드 개수, 스레드 개수 곱하기 float의 크기라고 생각하면된다.
+그리고 끝에 d_B, d_A, N은 함수 선언간 정의된 인자들이다.
 
 > 중간에 꺽쇠 세개 쌍으로 이루어진 것들은 원래 c++에 없는 문법이며 CUDA 컴파일러에서 처리해주는
 문법이라고 생각하면 된다.
