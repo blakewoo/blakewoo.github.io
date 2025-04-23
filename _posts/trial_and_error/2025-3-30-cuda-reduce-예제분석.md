@@ -8,7 +8,8 @@ render_with_liquid: false
 ---
 
 # CUDA Reduce 예제 분석
-이번 시간에는 수업중에 나온 Reduce 함수에 대한 예제를 분석해보겠다.
+이번 시간에는 수업중에 나온 Reduce 함수에 대한 예제를 분석해보겠다.   
+보다보면 알겠지만 번호가 큰 함수일 수록 효율적이고 빠른 함수이다.
 
 ## 1. reduce0 예제 분석
 ```cuda
@@ -19,6 +20,12 @@ __global__ void reduce0(float* x, int m) {
 }
 
 // host에서 호출, N은 전체 데이터 셋 개수
+// h_A => 원본 array 값
+float * d_A;
+
+cudaMalloc((void**)&d_A, N * sizeof(float));
+cudaMemcpy(d_A,h_A,N * sizeof(float),cudaMemcpyHostToDevice);
+
 for (int m = N / 2; m > 0; m /= 2) {
     int threads = (256 < m) ? 256 : m;
     int blocks = (m / 256 > 1) ? m / 256 : 1;
@@ -30,7 +37,7 @@ reduce0 함수의 경우 절반씩 나눠가면서 전반부에 후반부 데이
 한번에 돌아가는 thread는 m값이 256 보다 크다면 256개, 그보다 작다면 더 작은 크기로 돌아가며,
 기본적으로 N값이 2의 배수라는 가정을 두고 돌리는 것이다.
 
-![img.png](../../assets/blog/trial_error/gpu/reduce/img_2.png)
+![img.png](/assets/blog/trial_error/gpu/reduce/img_2.png)
 
 결과값은 d_A[0]에 남게 된다.
 
@@ -46,7 +53,15 @@ __global__ void reduce1(float* x, int N) {
     x[tid] = tsum;
 }
 
-// host에서 호출
+// host에서 호출, N은 실 데이터 배열 길이
+// h_A => 원본 array 값
+int blocks = 288; // SM의 배수
+int threads = 256;
+float * d_A;
+
+cudaMalloc((void**)&d_A, N * sizeof(float));
+cudaMemcpy(d_A,h_A,N * sizeof(float),cudaMemcpyHostToDevice);
+
 reduce1 << < blocks, threads >> > (d_A, N);
 reduce1 << < 1, threads >> > (d_A, blocks * threads);
 reduce1 << < 1, 1 >> > (d_A, threads);
@@ -54,7 +69,7 @@ reduce1 << < 1, 1 >> > (d_A, threads);
 
 threads * blocks 개수가 전체 N개보다 작고 N개의 배수의 형태로 운용한다.
 
-![img_1.png](../../assets/blog/trial_error/gpu/reduce/img_3.png)
+![img_1.png](/assets/blog/trial_error/gpu/reduce/img_3.png)
 
 threads * blocks를 stride로 잡고, stride 기준으로 데이터를 갖고와서 첫번째 stride 범위안의 메모리에 값을 더한다.   
 이후 두번째 커널에서는 threads * blocks 범위의 데이터를 한 개의 block안에 더한다.
@@ -87,6 +102,14 @@ __global__ void reduce2(float *y, float *x, int N) {
 int blocks  = 256;  // power of 2
 int threads = 256;
 
+// h_A => 원본 array 값
+float * d_A;
+float * d_B;
+
+cudaMalloc((void**)&d_A, N * sizeof(float));
+cudaMemcpy(d_A,h_A,N * sizeof(float),cudaMemcpyHostToDevice);
+cudaMalloc((void**)&d_B, N * sizeof(float));
+
 reduce2 << < blocks, threads, threads * sizeof(float) >> > (d_B, d_A, N);
 reduce2 << < 1, blocks, blocks * sizeof(float) >> > (d_A, d_B, blocks);
 ```
@@ -95,7 +118,10 @@ reduce2 << < 1, blocks, blocks * sizeof(float) >> > (d_A, d_B, blocks);
 기본적으로 위 방식도 stride를 사용하되, stride 밖의 값은 shared_memory를 이용하여 값을 더하고   
 stride 범위 안의 값은 2로 나눠가며 뒤의 값을 앞의 메모리에 더해가는 방식이다.     
 
-![img_2.png](../../assets/blog/trial_error/gpu/reduce/img_4.png)
+첫번째 커널에서는 전체 값이 한 개의 블록 사이즈로 줄어들고
+두번째 커널에서는 한 개의 블록사이즈가 한 값으로 줄어들어서 결과를 반환한다.
+
+![img.png](/assets/blog/trial_error/gpu/reduce/img_4.png)
 
 shared_memory를 썼다는 점에서 reduce0와 reduce1 방식을 mix 했다고 볼 수 있다.   
 위 함수 역시 d_A[0]에 결과값이 저장된다. 
@@ -131,6 +157,14 @@ __global__ void reduce3(float* y, float* x, int N) {
 //host에서 호출
 int blocks = 270;  // may not be a power of 2
 int threads = 256;
+
+// h_A => 원본 array 값
+float * d_A;
+float * d_B;
+
+cudaMalloc((void**)&d_A, N * sizeof(float));
+cudaMemcpy(d_A,h_A,N * sizeof(float),cudaMemcpyHostToDevice);
+cudaMalloc((void**)&d_B, N * sizeof(float));
 
 reduce3 << < blocks, threads, threads * sizeof(float) >> > (d_B, d_A, N);
 reduce3 << < 1, blocks, blocks * sizeof(float) >> > (d_A, d_B, blocks);
