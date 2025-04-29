@@ -107,6 +107,19 @@ IRISA Corpus-Texmex의 GIST1M, fvecs 포맷
 #### d. 라벨(필터) 설정
 ANN 벤치마크용으로 무작위 할당된 12개 필터, 포인트당 1개 평균
 
+### 5) Turing
+#### a. 출처
+Microsoft Turing 팀이 NeurIPS 2021 대회용으로 공개한 대규모 ANN 벤치마크 데이터셋
+Bing 검색 쿼리를 Turing AGI v5 인코더로 처리하였음.
+
+#### b. 벡터 특성
+100차원 float32
+
+#### c. 규모
+벡터로 표현한 10억 개의 벡터
+
+
+
 > ※ 추가 업데이트 및 검증 예정이고, 아직 완벽하지 않으니 참고만 바란다.
 {: .prompt-tip }
 
@@ -115,5 +128,5 @@ ANN 벤치마크용으로 무작위 할당된 12개 필터, 포인트당 1개 �
 - Jayaram Subramanya, Suhas, Fnu, Devvrit, Harsha Vardhan, Simhadri, Ravishankar, Krishnawamy, and Rohan, Kadekodi. "DiskANN: Fast Accurate Billion-point Nearest Neighbor Search on a Single Node." . In Advances in Neural Information Processing Systems. Curran Associates, Inc., 2019.
 - Aditi Singh, , Suhas Jayaram Subramanya, Ravishankar Krishnaswamy, and Harsha Vardhan Simhadri. "FreshDiskANN: A Fast and Accurate Graph-Based ANN Index for Streaming Similarity Search." (2021).
 - Siddharth Gollapudi, Neel Karia, Varun Sivashankar, Ravishankar Krishnaswamy, Nikit Begwani, Swapnil Raz, Yiyong Lin, Yin Zhang, Neelam Mahapatro, Premkumar Srinivasan, Amit Singh, and Harsha Vardhan Simhadri. 2023. Filtered-DiskANN: Graph Algorithms for Approximate Nearest Neighbor Search with Filters. In Proceedings of the ACM Web Conference 2023 (WWW '23). Association for Computing Machinery, New York, NY, USA, 3406–3416. https://doi.org/10.1145/3543507.3583552
-
-
+- [텐서플로우 - sift1m](https://www.tensorflow.org/datasets/catalog/sift1m?utm_source=chatgpt.com&hl=ko)
+- [Learning2hash.github.io - Microsoft Turing-ANNS-1B](https://learning2hash.github.io/publications/microsoftturinganns1B/?utm_source=chatgpt.com)
