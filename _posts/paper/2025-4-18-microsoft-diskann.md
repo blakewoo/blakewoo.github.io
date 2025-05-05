@@ -47,5 +47,5 @@ Search list의 크기가 늘어난다면 Recall rate는 증가하지만, 응답�
 
 # 참고문헌
 - Jayaram Subramanya, Suhas, Fnu, Devvrit, Harsha Vardhan, Simhadri, Ravishankar, Krishnawamy, and Rohan, Kadekodi. "DiskANN: Fast Accurate Billion-point Nearest Neighbor Search on a Single Node." . In Advances in Neural Information Processing Systems. Curran Associates, Inc., 2019.
-- 2025년 한국정보과학회 투고 논문 - 우지훈, 정보돈, 정연우
+- 2025년 전반기 한국정보과학회 데이터베이스 투고 논문 - 우지훈, 정보돈, 정연우
 
