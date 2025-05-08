@@ -5,6 +5,7 @@ date: 2025-5-4 23:30:00 +0900
 categories: [Paper]
 tags: [Paper, Microsoft, VectorDB, DiskANN] 
 render_with_liquid: false
+use_math: true
 ---
 
 # DiskANN
