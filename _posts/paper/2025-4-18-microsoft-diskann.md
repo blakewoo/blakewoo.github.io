@@ -29,7 +29,14 @@ $$ \alpha \times D(p*,p') \le D(p,p') $$
 만약 1배 수 보다 작다면 p’은 후보에서 제외해버리고 edge를 끊어버린다. 첫 번째 가지치기는 α값을 1로 두고 edge를 끊으며 두 번째 가지 치기에는
 α를 1보다 큰 값으로 두고 이를 만족하는 edge는 다시 이어준다.
 
-## 3. Beam Search
+## 3. Index build 및 적재
+Disk 인덱스를 빌드하기 시작할때 PQ_disk_bytes 값을 0으로 주지 않는다면 별도로 compressed된 그래프(_disk.index_pq_compressed.bin,
+_disk.index_pq_compressed.bin)를 만든다. 이는 양자화(이 양자화에 대해서는 추후 포스팅이 있을 예정이다)되어 작아진 그래프이고,
+이후 Search 시 Memory에 올라와 Search시 참조되게 된다. (만약에 PQ_disk_bytes를 0으로 해서 빌드하면 index_pq_compressed 파일은 없고
+Search시 전체 Index를 참조하지만 이는 속도가 매우 느려진다)
+그리고, 앞서 설명한 Vamana Graph 생성을 통해 Index를 만들며 이는 전체 Vector에 대한 Index이므로 매우 용량이 크고, 따라서 SSD에 적재된다.
+
+## 4. Beam Search
 탐색은 그래프의 중심점인 centroid와 가장 가까운 벡터인 medoid에서 시작되며,
 쿼리와의 거리가 가까운 이웃 벡터들을 Beam Width만큼 선택하여 탐색 영역을 점차 확장한다.
 (여기서 Beam Width는 DiskANN을 구동하는데 인자값 W이다)
@@ -41,12 +48,16 @@ $$ \alpha \times D(p*,p') \le D(p,p') $$
 
 이 과정에서 탐색 완료된 집합의 크기를 쿼리와 거리 기준 오름차순으로 정렬한 후 K개 만큼 반환하게 된다.
 
-## 4. 성능에 영향을 미치는 요인
+## 5. 성능에 영향을 미치는 요인
 Search시 응답 시간에 영향을 주는 인자는 Beam Width에 영향을 주는 W값과 메모리에 얼마나 캐시할지 정하는 Cache 값과 Search list값이고
 recall rate(재현율)에 영향을 주는 것은 Search list의 값이다.   
 Search list의 크기가 늘어난다면 Recall rate는 증가하지만, 응답시간은 줄어든다.
+물론 완전 선형적으로 비례하거나 반비례하는 것은 아니고 완만하게 비례하거나 반비례한다.
+
+> ※ 추가 업데이트 및 검증 예정
+{: .prompt-tip }
 
 # 참고문헌
 - Jayaram Subramanya, Suhas, Fnu, Devvrit, Harsha Vardhan, Simhadri, Ravishankar, Krishnawamy, and Rohan, Kadekodi. "DiskANN: Fast Accurate Billion-point Nearest Neighbor Search on a Single Node." . In Advances in Neural Information Processing Systems. Curran Associates, Inc., 2019.
 - 2025년 전반기 한국정보과학회 데이터베이스 투고 논문 - 우지훈, 정보돈, 정연우
-
+- [DiskANN - 공식 깃허브](https://github.com/microsoft/DiskANN)
