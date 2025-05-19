@@ -2,8 +2,8 @@
 title: CUDA 예제 - Reduce 예제 분석
 author: blakewoo
 date: 2025-3-30 20:30:00 +0900
-categories: [Trial and error]
-tags: [GPU, CUDA] 
+categories: [GPU Programming]
+tags: [GPU, CUDA, REDUCE] 
 render_with_liquid: false
 ---
 
