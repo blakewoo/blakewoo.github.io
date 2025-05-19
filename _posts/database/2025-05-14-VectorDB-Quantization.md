@@ -45,11 +45,7 @@ AI 모델에 대한 양자화도 마찬가지인데, 기본 골자는 모델의 
 
 ![img.png](/assets/blog/database/vectordb/quantization/img_1.png)
 
-### 1) TFLite(TensorFlow Lite) 
-TensorFlow Lite는 모바일, 임베디드 및 IoT 기기에서 TensorFlow 모델을 변환하는데 쓰인다.   
-작은 기기에서 구동되도록 사이즈를 줄일 수 있다.  
-
-### 2) 사후 양자화(PTQ, Post-Training Quantization)
+### 1) 사후 양자화(PTQ, Post-Training Quantization)
 PTQ는 사전 훈련된 모델을 사용한 후 양자화를 적용하는 방식이다.
 추가 학습은 필요하지 않기 때문에 적용이 빠르다. 주로 메모리 사용량을 줄이고, 연산 속도를 높이는데 사용되는데
 모델 정확도 손실을 최소화하면서 리소스 줄이는데 좋다. 하지만 정밀도가 중요하다면 정확도 손실이 발생할 수 있다.   
@@ -58,18 +54,20 @@ PTQ는 사전 훈련된 모델을 사용한 후 양자화를 적용하는 방식
 
 #### a. Post-Training float16 quantization
 32비트 부동소수점(FP32)에서 16비트 부동소수점(FP16)으로 변환하는 방식이다.   
-이 방식은 보정을 하지 않는다.
-
+데이터를 저장할때는 16bit 부동소수점으로 저장하나, 실제 구동할때는 32bit로 업샘플링(Up sampling)을 수행해서
+사용할 수 있으며, 아예 float16을 지원하는 GPU에서 구동된다면 그대로 구동할 수도 있다.  
 
 #### b. Post-Training dynamic range quantization
-학습된 모델의 가중치만을 8비트 정수(int8)로 정적(static) 양자화하고,
-활성화(activation)는 런타임에 동적으로 8비트로 변환한 뒤 처리하는 방식이다.
-이 역시 보정하지 않는다.
+학습된 모델의 가중치와 상수만 8비트 정수(int8)로 고정 소수점화하고, 
+활성화(activation)는 런타임에 동적으로 float32-> int8 -> float32로 변환한다.   
+이 말인 즉슨 float32를 입력으로 받아 int8로 바꾸어 정수 커널에서 연산 후 다시 float32로 변환한다는 뜻이다.   
+메모리 대역폭과 연산량은 줄지만 본래와 유사한 정확도를 유지할 수 있다.
 
 
 #### c. Post-Training integer quantization
 가중치와 활성화 모두를 8비트 정수(int8)로 양자화하여 추론 과정에서 완전한 정수 연산만 사용하도록 하는 기법이다.
-이를 위해 소량의 대표 데이터셋을 이용해 활성화의 동적 범위(range)를 보정해야한다.
+대신에 보정(calibration)이 필요한데, 이를 위해 소량의 대표 데이터셋을 이용해
+범위(scale)과, 어느 부분이 int8의 0에 해당하게 할건지 제로 포인트를 계산해서 활성화의 동적 범위(range)를 보정해야한다.
 
 
 #### d. Post-Training integer quantization with int16 activations
@@ -77,13 +75,13 @@ PTQ는 사전 훈련된 모델을 사용한 후 양자화를 적용하는 방식
 중간 결과(intermediate)에 더 높은 비트폭을 할당해 정확도와 성능 간의 균형을 맞추는 방법이다.
 
 
-### 3) 학습 중 양자화(QAT, Quantization-Aware Training)
+### 2) 학습 중 양자화(QAT, Quantization-Aware Training)
 훈련 과정에서부터 양자화를 적용하는 방식으로 낮은 정밀도(half-precision 같은)로 모델을 학습 시키면서도
 높은 정확도를 유지할 수 있는 방법이다. 이 방법은 훈련 중에 양자화를 고려하여 모델이 적응하도록 하기 때문에 성능 손실이 적지만,
 PTQ에 비해 더 많은 계산 자원이 필요하다. 주로 매우 높은 성능이 요구되는 응용 프로그램에서 사용되는데 정확도와 리소스 절감을 균형있게 유지할수있다.
 
 
-### 4) QLoRA(Quantized Low-Rank Adaptation)
+### 3) QLoRA(Quantized Low-Rank Adaptation)
 최근에 주목받고 있는 QLoRA는 양자화된 가중치로 대형 모델을 적은 메모리로 미세 조정(fine-tuning, 최근 gpt를 이용한 서비스에서 많이 사용됨)
 하는 기술이다. 이는 주로 매우 큰 언어 모델을 적은 자원으로 개인화하거나 특정 작업에 맞게 조정할 때 사용된다.
 QLoRA는 특히 대형 모델의 성능을 유지하면서도 메모리 요구 사항을 크게 줄일 수 있는 것이 강점이다.
