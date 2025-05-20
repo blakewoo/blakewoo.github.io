@@ -3,7 +3,7 @@ title: GPU 프로그래밍 - Global Memory Coalescing
 author: blakewoo
 date: 2025-5-20 14:00:00 +0900
 categories: [GPU Programming]
-tags: [GPU, CUDA, Matrix multiplication] 
+tags: [GPU, CUDA, Memory coalescing] 
 render_with_liquid: false
 ---
 
