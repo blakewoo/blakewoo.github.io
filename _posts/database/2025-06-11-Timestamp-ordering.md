@@ -254,6 +254,38 @@ Validation을 하는 트랜잭션 기준으로 어느방향으로 보냐에 따�
 
 ![img_1.png](/assets/blog/database/timestamp_ordering/img_1.png)
 
+### ※ Front Validation 
+기본적으로 Validation Phase에 진입했을때 해당 트랜잭션에 대해서 TimeStamp가 찍힌다.    
+그리고 Validation Phase 진입시 각 방식에 맞는(Frontward or backward) 범위에서 실행된 트랜잭션에 대해서
+체크를 하게된다.
+
+만약 트랜잭션 i의 타임스탬프(TS(Ti))와 트랜잭션 j의 타임스탬프(TS(Tj))가
+TS(Ti) < TS(Tj)라면 다음 세 가지 조건 중 하나가 충족되어야하며, 충족되지 않는다면 Abort를 한다.
+
+#### 1. 트랜잭션 i가 트랜잭션 j가 시작하기 전에 READ,VALIDATION,WRITE까지 모두 끝난 경우
+순차적으로 실행되니 Abort할 이유가 없다.
+
+#### 2. 트랜잭션 i가 완료되기전에 트랜잭션 j가 Write Phase를 시작했는데 트랜잭션 i가 쓴 객체에 대해서 트랜잭션 j의 읽기 연산이 없을 경우
+그냥 보면 뭔 소린가 싶다. 그림으로 살펴보자.
+
+![img.png](/assets/blog/database/timestamp_ordering/img_5.png)
+
+위와 같이 트랜잭션 1,2(이하 T1, T2)가 있다.   
+T1은 T2의 VALIDATION이 시작하기 전에 VALIDATION에 들어갔다.    
+이 경우 T2는 T1의 VALIDATION 고려 대상에 들어가고, 트랜잭션 i가 Write한 대상은 트랜잭션 j가 읽고 있으므로 Abort 처리를해야한다.
+다만 아래의 경우는 T2의 VALIDATION이 끝났기 때문에 T1의 VALIDATION 대상으로 취급하지 않기때문에 ABORT를 하지 않는다.
+
+![img_1.png](/assets/blog/database/timestamp_ordering/img_6.png)
+
+#### 3. 트랜잭션 i가 트랜잭션 2가 완료되기전에 Read Phase를 끝냈을때 트랜잭션 i는 트랜잭션 j가 읽거나 쓴 객체에 쓰기를 하지 않았을 경우
+이 역시 그림으로 살펴보겠다. 
+
+![img_2.png](/assets/blog/database/timestamp_ordering/img_7.png)
+
+T1의 VALIDATION의 Timestamp는 1(먼저 validation했으므로)이고 이 시점에서 Validation 해봤을때 T2가 완료되기 전에 트랜잭션 2에 대해서
+읽기나 쓰지를 하지 않았다.
+이후 트랜잭션이 끝나고 나서 T1이 A에 대해서 DATABASE에 WRITE하게되면 T2는 DATABASE에서 변경된 A 값을 읽어올 수 있다.
+
 ### 5) 성능 이슈
 OCC도 아래와 같은 이유로 성능 이슈가 있다.
 
