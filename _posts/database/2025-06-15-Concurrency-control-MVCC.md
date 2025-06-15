@@ -39,7 +39,7 @@ Write를 하게 되는데 만약 트랜잭션 database에 Snapshot 이후 시점
 
 ### 3) 예시
 
-![img.png](/assets/blog/database/timestamp_ordering/img.png)
+![img.png](/assets/blog/database/mvcc/img.png)
 
 1) T1의 Timestamp가 1로 세팅되며 (TS(T1)=1) 트랜잭션 상태표에 같이 기재된다.   
    <table>
