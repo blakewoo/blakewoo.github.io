@@ -203,10 +203,9 @@ Write를 하게 되는데 만약 트랜잭션 database에 Snapshot 이후 시점
 
 ## 6. MVCC 디자인 구현 - Version Storage
 ### 1) 추가 전용 저장 방식 (Append‑Only Storage)
-새 버전이 동일한 테이블 공간에 계속 추가됨
+새 버전이 동일한 테이블 공간에 계속 추가된다.
 
-### 2) 시점 이동 저장 방식 (Time‑Travel Storage)
-이전 버전이 별도의 테이블 공간으로 복사됨
+![img.png](/assets/blog/database/mvcc/img_1.png)
 
 #### a. Oldest-to-Newest(O2N)
 새 버전을 버전 체인의 가장 마지막에 붙이는 것 - 최신버전을 찾을때마다 순차 검색 필요
@@ -214,21 +213,32 @@ Write를 하게 되는데 만약 트랜잭션 database에 Snapshot 이후 시점
 #### b. Newest-to-Oldest(N2O)
 새 버전을 버전 체인의 가장 앞에 붙이는 것 - 순차 검색 필요 없음
 
+### 2) 시점 이동 저장 방식 (Time‑Travel Storage)
+이전 버전이 별도의 테이블 공간으로 복사됨
+
+![img_1.png](/assets/blog/database/mvcc/img_2.png)
+
 ### 3) 델타 저장 방식 (Delta Storage)
 수정된 속성의 원본 값이 별도의 델타 레코드 공간에 복사됨
+
+![img_2.png](/assets/blog/database/mvcc/img_3.png)
 
 ## 7. MVCC 디자인 구현 - Garbage Collection
 ### 1) Tuple-level
 튜플을 직접 검사하여 이전 버전을 찾는 방식으로 아래의 두 가지로 나눌 수 있다.
 #### a. Background Vacuuming
+별도의 스레드가 주기적으로 테이블을 스캔하여 회수 가능한 버전을 찾아서 제거한다. 모든 스토리지방식에서 가능하다.
+
 #### b. Cooperative Cleaning
+워커 스레드는 버전 체인을 탐색하면서 회수 가능한 버전을 식별하여 제거한다. O2N 구조에서만 가능하다.
 
 ### 2) Transaction-level
 트랜잭션이 자신이 생성한 이전 버전들을 직접 추적하여, DBMS가 가시성을 판단하기 위해 튜플을 스캔할 필요가 없다.
+아래의 그림을 보자.
 
-> ※ 추가 업데이트 및 검증 예정이고, 아직 완벽하지 않으니 참고만 바란다.
-{: .prompt-tip }
+![img_3.png](/assets/blog/database/mvcc/img_4.png)
 
+각 트랜잭션이 이전에 생성한 버전을 확인하여 이를 직접 처리하게끔 요청하는 것이다.
 
 # 참고자료
 - 서강대학교 김영재 교수님 고급데이터 베이스 강의 자료
