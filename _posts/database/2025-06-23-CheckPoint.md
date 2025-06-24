@@ -1,7 +1,7 @@
 ---
 title: Database - Checkpoint
 author: blakewoo
-date: 2025-6-21 21:00:00 +0900
+date: 2025-6-24 21:00:00 +0900
 categories: [Database]
 tags: [Database, DBMS , Recovery, Logging, Checkpoint]
 render_with_liquid: false
@@ -46,15 +46,9 @@ Buffer Pool의 Dirty Page당 하나의 항목을 갖고 있는데 페이지를 �
 
 위 두 값들이 포함된 예시는 아래와 같다.
 
-![img.png](img.png)
-
-
+![img.png](/assets/blog/database/checkpoint/img.png)
 
 ## 4. Fuzzy checkpoints
-
-
-
-
 > ※ 미비된 내용은 추가 업데이트 예정 및 검증 예정이다.
 {: .prompt-tip }
 
