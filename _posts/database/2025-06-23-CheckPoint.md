@@ -60,7 +60,8 @@ DPT가 Dirty Page Table이며 DPT={P22}라는 식으로 표기되어있다.
 
 ## 4. Fuzzy checkpoints
 fuzzy checkPoint는 앞선 checkpoint와는 달리 실행을 멈출 필요가 없으며 동적으로 체크포인트를 찍을 수 있는 방식이다.   
-하지만 조금 복잡하다.
+하지만 조금 복잡하다. 그리고 이 내용은 앞서 설명했던 ARIES 방식의 일부이며 복구 중간에 다시 Crash가 나도
+복구가 가능한 방식이다.
 
 ### 1) 방법
 앞선 다른 방식과 달리 fuzzy checkpoint는 CHECKPOINT-BEGIN과 CHECKPOINT-END를 갖는다.  
@@ -75,10 +76,11 @@ WAL을 MasterRecord에 기재된 시점부터 쭉 살피고 어느시점에서 �
 모두 분석한다.
 
 #### b. Redo
-모든 작업을 다시 재 시작한다.
+DPT를 분석한 뒤에 가장 작은 recLSN부터 모든 작업을 다시 재 시작한다.
 
 #### c. Undo
-크래시가 일어난 시점부터 역으로 올라가면서 각 작업들을 Undo한다.
+크래시가 일어난 시점부터 역으로 올라가면서 Crash의 영향이 없어질때까지 각 작업들을 Undo한다.
+
 
 > ※ 미비된 내용은 추가 업데이트 예정 및 검증 예정이다.
 {: .prompt-tip }
