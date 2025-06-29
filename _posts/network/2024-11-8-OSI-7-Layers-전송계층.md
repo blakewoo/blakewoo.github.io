@@ -2,8 +2,8 @@
 title: OSI 7 Layer - 전송 계층과 TCP
 author: blakewoo
 date: 2024-11-10 19:00:00 +0900
-categories: [Computer science]
-tags: [Computer science, Network] 
+categories: [Network]
+tags: [Network, OSI 7 Layer]
 render_with_liquid: false
 use_math: true
 ---

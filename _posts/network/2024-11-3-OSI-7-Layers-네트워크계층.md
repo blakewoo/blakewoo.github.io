@@ -2,8 +2,8 @@
 title: OSI 7 Layer - 네트워크 계층과 IP 주소
 author: blakewoo
 date: 2024-11-5 22:00:00 +0900
-categories: [Computer science]
-tags: [Computer science, Network] 
+categories: [Network]
+tags: [Network, OSI 7 Layer]
 render_with_liquid: false
 use_math: true
 ---
