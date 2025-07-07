@@ -184,6 +184,7 @@ else {
 
 
 4) 트랜잭션 2에서 READ(A)가 일어나고, T2 Workspace는 아래와 같이 바뀐다.   
+
 <table>
     <tr>
         <td>Object</td>
@@ -214,6 +215,7 @@ else {
 
 
 8) 트랜잭션 1에서 Write(A)가 일어나고, T1 Workspace는 아래와 같이 바뀐다.
+
 <table>
     <tr>
         <td>Object</td>

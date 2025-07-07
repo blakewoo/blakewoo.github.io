@@ -65,6 +65,7 @@ Write를 하게 되는데 만약 트랜잭션 database에 Snapshot 이후 시점
    
 
 3) A0의 그다음 버전인 A1을 만들어 값을 넣고, Begin은 1(트랜잭션 1의 Timestamp 값)을 넣고 A0의 END를 1로 세팅한다.         
+   
     <table>
         <tr>
             <td>Version</td>
