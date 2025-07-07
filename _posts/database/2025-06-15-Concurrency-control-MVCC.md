@@ -64,7 +64,7 @@ Write를 하게 되는데 만약 트랜잭션 database에 Snapshot 이후 시점
 2) Database에 기본적으로 A의 초기버전인 A0가 있고 T1에서 R(A)를 할때 해당 값을 가져와 읽는다.
    
 
-3) A0의 그다음 버전인 A1을 만들어 값을 넣고, Begin은 1(트랜잭션 1의 Timestamp 값)을 넣고 A0의 END를 1로 세팅한다.   
+3) A0의 그다음 버전인 A1을 만들어 값을 넣고, Begin은 1(트랜잭션 1의 Timestamp 값)을 넣고 A0의 END를 1로 세팅한다.         
     <table>
         <tr>
             <td>Version</td>
@@ -113,7 +113,7 @@ Write를 하게 되는데 만약 트랜잭션 database에 Snapshot 이후 시점
 
 6) T1은 자신이 이전에 쓴 A1을 읽느낟.
 
-7) T1이 끝나고 트랜잭션 상태표에 반영된다.   
+7) T1이 끝나고 트랜잭션 상태표에 반영된다.     
    <table>
     <tr>
         <td>TxnId</td>
@@ -160,7 +160,7 @@ Write를 하게 되는데 만약 트랜잭션 database에 Snapshot 이후 시점
     </tr>
     </table>
 
-8) 트랜잭션 2가 끝나고 트랜잭션 상태표에 반영된다.   
+8) 트랜잭션 2가 끝나고 트랜잭션 상태표에 반영된다.     
    <table>
     <tr>
         <td>TxnId</td>
