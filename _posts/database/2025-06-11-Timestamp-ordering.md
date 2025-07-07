@@ -160,8 +160,8 @@ else {
 2) 트랜잭션 2가 실행되고 T2 Workspace를 만든다. 트랜잭션 1의 READ PHASE가 실행되었다.
    
 
-3) 트랜잭션 1에서 READ(A)가 일어나고, T1 Workspace는 아래와 같이 바뀐다.   
-   <table>
+3) 트랜잭션 1에서 READ(A)가 일어나고, T1 Workspace는 아래와 같이 바뀐다.
+<table>
     <tr>
         <td>Object</td>
         <td>Value</td>
@@ -177,14 +177,14 @@ else {
         <td></td>
         <td></td>
     </tr>
-   </table>
-   (Value 값은 임의로 넣었다.)   
+</table>   
+(Value 값은 임의로 넣었다.)   
 
-   또한 트랜잭션 2에서 T1 Workspace를 만든다.
+또한 트랜잭션 2에서 T1 Workspace를 만든다.
 
 
-4) 트랜잭션 2에서 READ(A)가 일어나고, T2 Workspace는 아래와 같이 바뀐다.    
-      <table>
+4) 트랜잭션 2에서 READ(A)가 일어나고, T2 Workspace는 아래와 같이 바뀐다.   
+<table>
     <tr>
         <td>Object</td>
         <td>Value</td>
@@ -200,7 +200,7 @@ else {
         <td></td>
         <td></td>
     </tr>
-   </table>
+</table>
    
 
 
@@ -213,8 +213,8 @@ else {
 7) 트랜잭션 2가 종료되었다.
 
 
-8) 트랜잭션 1에서 Write(A)가 일어나고, T1 Workspace는 아래와 같이 바뀐다.   
-      <table>
+8) 트랜잭션 1에서 Write(A)가 일어나고, T1 Workspace는 아래와 같이 바뀐다.
+<table>
     <tr>
         <td>Object</td>
         <td>Value</td>
@@ -230,8 +230,8 @@ else {
         <td></td>
         <td></td>
     </tr>
-   </table>
-   (Value 값은 임의로 넣었으며, W-TS는 WRITE 전까지 무한(시스템상 최대 크기)로 잡아둔다)   
+</table>   
+(Value 값은 임의로 넣었으며, W-TS는 WRITE 전까지 무한(시스템상 최대 크기)로 잡아둔다)   
    
 
 
