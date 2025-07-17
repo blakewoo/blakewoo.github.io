@@ -86,6 +86,20 @@ arr.fill(0); // 모든 원소를 0으로 초기화
 #include<vector>
 
 vector<int> vec; // int형 가변크기 vector 선언
+vector<int> vec2 = {1,2,3}; // int형 가변크기 vector에 1,2,3으로 초기화
+vector<int> vec3(vec2); // vec2와 동일한 값으로 초기화
+```
+
+Vector는 가변 크기지만 미리 크기를 할당해둘수도 있다.
+```cpp
+vector<int> vec1(4) // 크기 4로 생성
+vector<int> vec2(10,4); // 크기 10에 4로 초기화
+vector<vector<int>> vec3(9,vector<int>(8,6) // 크기 8이고 6으로 초기화된 벡터들이 총 9개 (8x9, 2차원 벡터) 
+vector<vector<int>> vec4 = {
+  {1,2,3},
+  {4,5,6},
+  {7,8,9}
+} // 초기화 리스트를 이용하여 2차원 벡터 초기화
 ```
 
 #### b. 값 추가
@@ -111,6 +125,9 @@ if (!vec.empty()) {
 // 특정 위치의 원소 삭제
 if (!vec.empty()) vec.erase(vec.begin() + 1);
 
+// 제일 뒤의 원소 삭제
+vec.pop_back();
+
 // 값이 10인 모든 원소 삭제 (erase-remove idiom)
 vec.erase(std::remove(vec.begin(), vec.end(), 10), vec.end());
 
@@ -126,6 +143,8 @@ vec.clear();
 #include<set>
 
 set<int> intSet; // int형으로 set 선언
+set<int> intSet2 = {1,2,3}; //  set을 1,2,3으로 초기화
+set<int> intSet3(intSet2); // set을 intSet2로 생성
 ```
 
 #### b. 값 추가
@@ -135,8 +154,23 @@ intSet.insert(10);
 intSet.insert(20);
 ```
 
+#### c. 값 탐색
+```cpp
+set<int> datas = {1,2,3,4,5};
 
-#### c. 업데이트
+auto targetIndex = datas.find(3);
+
+if(targetIndx != datas.end()){
+ // 해당 값이 set에 있음
+}
+else{
+ // 해당 값이 set에 없음
+}
+
+```
+
+
+#### d. 업데이트
 Set은 키 기반으로 정렬된 컨테이너이므로 직접 수정할 수 없다. 값을 변경하려면 기존 값을 지우고 새 값을 삽입한다.
 
 ```cpp
@@ -149,7 +183,7 @@ if (pos != intSet.end()) {
 }
 ```
 
-#### d. 삭제
+#### e. 삭제
 
 ```cpp
 intSet.erase(20);           // 값이 20인 요소 삭제
@@ -165,6 +199,7 @@ intSet.clear();             // 모든 요소 삭제
 #include<map>
 
 map<int, int> intMap; // int형을 키와 값으로 갖는 map을 선언
+map<int, int> intMap2 = {{1,3}}; // int형키 1과 int형 value 3을 갖는 map을 선언
 ```
 
 #### b. 값 추가
@@ -178,7 +213,6 @@ intMap[2] = 200;
 
 
 #### c. 업데이트
-
 ```cpp
 intMap[2] = 250; // operator[]로 key가 2인 값 변경
 ```
@@ -199,3 +233,4 @@ intMap.clear(); // 전체 삭제
 - [위키독스 - C++ 이야기](https://wikidocs.net/25044)
 - [c++20 공식문서](https://isocpp.org/files/papers/N4860.pdf)
 - [위키백과 - Standard Template Library](https://en.wikipedia.org/wiki/Standard_Template_Library)
+- 코딩테스트 합격자 되기 C++ 편. 자료구조, 알고리즘, 빈출 100문제로 대비하는 코테 풀패키지, 박경록, (주)골든 래빗
