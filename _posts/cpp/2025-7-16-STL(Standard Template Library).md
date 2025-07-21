@@ -43,8 +43,26 @@ set, map, hash_set, hash_map
 STL에는 함수 호출 연산자를 오버로드하는 클래스가 포함되어있는데 이러한 클래스의 인스턴스를 함수 객체라고 한다.
 이 함수 객체는 연관된 함수의 동작을 매개변수화할 수 있도록 하며, 함수와 함께 연관된 함수 객체 정보를 유지하는데 사용될 수 있다.
 
-> ※ 조금 더 이해하기 쉽도록 업데이트 예정
-{: .prompt-tip }
+그냥 들으면 이게 뭔 소린가 싶은데 그냥 해당 STL을 함수 처럼 쓸수 있게 해준다는 뜻이다.   
+아래의 예시를 살펴보자.
+
+```cpp
+#include <iostream>
+
+class Add {
+public:  // 중요! class는 기본 접근이 private이므로 명시적으로 public으로 열어줘야 함
+    int operator()(int a, int b) const {
+        return a + b;
+    }
+};
+
+int main() {
+    Add add;
+    std::cout << add(3, 5) << std::endl;  // 출력: 8
+}
+```
+
+위와 같이 class를 선언한다면 객체이지만 함수같이 사용할 수 있으며 이를 함수 객체라고 한다.
 
 ## 2. 자주 쓰는 STL
 ### 1) Array
@@ -72,6 +90,10 @@ if (!arr.empty()) {
     arr.at(4) = 50;   // at() 사용
 }
 ```
+
+> ※ 성능을 살펴볼때 array보단 vector가 더 낫다는 말도 있다.
+{: .prompt-tip }
+
 
 #### d. 삭제
 std::array는 고정 크기이므로 원소를 삭제할 수 없다. 대신 모든 원소를 초기화하거나 기본값으로 채운다
@@ -166,9 +188,69 @@ if(targetIndx != datas.end()){
 else{
  // 해당 값이 set에 없음
 }
-
 ```
 
+※ 사실 set을 쓸 때 뭔가를 넣어두고 안에 값이 있는지 없는지 체크하려고 쓰는건데,
+위와 같이 쓰면 매우 번거롭다. 그래서 나는 개인적으로 별도의 has 함수를 만들어서 사용한다.
+
+```
+#include <set>
+
+template <typename T>
+bool has(const std::set<T>& s, const T& value) {
+    return s.find(value) != s.end();
+}
+```
+
+아니면 별도의 wrapper class를 만들어서 사용할 수도 있다.
+
+```cpp
+#include <iostream>
+#include <set>
+
+template <typename T>
+class SetWithHas {
+private:
+    std::set<T> internalSet;
+
+public:
+    // 기본 생성자
+    SetWithHas() = default;
+
+    // insert 위임
+    void insert(const T& value) {
+        internalSet.insert(value);
+    }
+
+    // erase 위임
+    void erase(const T& value) {
+        internalSet.erase(value);
+    }
+
+    // 해당 값이 있는지 체크
+    bool has(const T& value) const {
+        return internalSet.find(value) != internalSet.end();
+    }
+
+    // 반복자 위임
+    typename std::set<T>::const_iterator begin() const {
+        return internalSet.begin();
+    }
+
+    typename std::set<T>::const_iterator end() const {
+        return internalSet.end();
+    }
+
+    // 갯수 반환
+    std::size_t size() const {
+        return internalSet.size();
+    }
+    
+    // 필요하다면 추가 함수 가능
+};
+```
+
+하지만 SET을 상속받거나 SET을 직접 고치는건 권장되지 않는다.
 
 #### d. 업데이트
 Set은 키 기반으로 정렬된 컨테이너이므로 직접 수정할 수 없다. 값을 변경하려면 기존 값을 지우고 새 값을 삽입한다.
