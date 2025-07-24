@@ -252,6 +252,25 @@ public:
 
 하지만 SET을 상속받거나 SET을 직접 고치는건 권장되지 않는다.
 
+c++20 부터는 아예 contain이라는 함수를 지원한다.
+```cpp
+#include <iostream>
+#include <set>
+
+using namespace std;
+ 
+int main()
+{
+    set<int> testSet{1, 2};
+ 
+    for (int x : {2, 3})
+        if (testSet.contains(x))
+            cout << x << ": is here\n";
+        else
+            cout << x << ": is not here\n";
+}
+```
+
 #### d. 업데이트
 Set은 키 기반으로 정렬된 컨테이너이므로 직접 수정할 수 없다. 값을 변경하려면 기존 값을 지우고 새 값을 삽입한다.
 
@@ -293,13 +312,108 @@ intMap.insert(std::make_pair(1, 100));
 intMap[2] = 200;
 ```
 
+#### c. 값 탐색
 
-#### c. 업데이트
+```cpp
+#include <map>
+map<int,int> datas = {{1,2},{2,3},{3,4},{4,5},{5,6}};
+
+auto targetIndex = datas.find(3);
+
+if(targetIndx != datas.end()){
+ // 해당 값이 map에 있음
+}
+else{
+ // 해당 값이 map에 없음
+}
+```
+
+위의 set 함수에서와 마찬가지로 has 함수를 따로 만들어 쓸수도있다.
+
+```
+#include <map>
+
+template <typename T1, typename T2>
+bool has(const std::map<T1,T2>& m, const T1& key) {
+    return m.find(key) != m.end();
+}
+```
+
+아니면 별도의 wrapper class를 만들어서 사용할 수도 있다.
+
+```cpp
+#include <iostream>
+#include <map>
+
+template <typename T1, typename T2>
+class MapWithHas {
+private:
+    std::map<T1,T2> internalMap;
+
+public:
+    // 기본 생성자
+    MapWithHas() = default;
+
+    // insert 위임
+    void insert(const T1& key,const T2& value) {
+        internalSet[key] = value;
+    }
+
+    // erase 위임
+    void erase(const T1& key) {
+        internalSet.erase(key);
+    }
+
+    // 해당 값이 있는지 체크
+    bool has(const T1& key) const {
+        return internalMap.find(key) != internalMap.end();
+    }
+
+    // 반복자 위임
+    typename std::map<T1,T2>::const_iterator begin() const {
+        return internalMap.begin();
+    }
+
+    typename std::map<T1,T2>::const_iterator end() const {
+        return internalMap.end();
+    }
+
+    // 갯수 반환
+    std::size_t size() const {
+        return internalMap.size();
+    }
+    
+    // 필요하다면 추가 함수 가능
+};
+```
+
+하지만 MAP을 상속받거나 MAP을 직접 고치는건 권장되지 않는다.
+
+c++20 부터는 아예 contain이라는 함수를 지원한다.
+```cpp
+#include <iostream>
+#include <map>
+
+using namespace std;
+ 
+int main()
+{
+    map<int> testMap{1, 2};
+ 
+    for (int x : {2, 3})
+        if (testMap.contains(x))
+            cout << x << ": is here\n";
+        else
+            cout << x << ": is not here\n";
+}
+```
+
+#### d. 업데이트
 ```cpp
 intMap[2] = 250; // operator[]로 key가 2인 값 변경
 ```
 
-#### d. 삭제
+#### e. 삭제
 
 ```cpp
 intMap.erase(1);    // 키 1을 삭제
@@ -316,3 +430,5 @@ intMap.clear(); // 전체 삭제
 - [c++20 공식문서](https://isocpp.org/files/papers/N4860.pdf)
 - [위키백과 - Standard Template Library](https://en.wikipedia.org/wiki/Standard_Template_Library)
 - 코딩테스트 합격자 되기 C++ 편. 자료구조, 알고리즘, 빈출 100문제로 대비하는 코테 풀패키지, 박경록, (주)골든 래빗
+- [cppreference - std::set<key,compare,allocator>::contains](https://en.cppreference.com/w/cpp/container/set/contains)
+- [cppreference - std::map<Key,T,Compare,Allocator>::contains](https://en.cppreference.com/w/cpp/container/map/contains)
