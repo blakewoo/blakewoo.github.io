@@ -89,6 +89,22 @@ postgres와 sqlite를 기본으로 하는 DB 저장소를 제공한다.
 간단히 말해서 좀 더 세밀한 제어와 조율을 원한다면 , Stateful한 워크 플로우를 AI Agent를 통해
 개발하고자한다면 LangGraph를 사용하는게 맞다.
 
+## 4. AutoGen과의 관계
+마이크로소프트에서도 멀티 에이전트를 위한 플랫폼을 만들었다.   
+목적은 같은 것 같으나 방식이 다르다.   
+
+| 구분            | AutoGen                                                                                | LangGraph                                                                                         |
+| ------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| **개발사·출처**    | Microsoft Research 및 오픈소스(Autogen GitHub)              | LangChain 팀 및 오픈소스(LangGraph GitHub)                              |
+| **핵심 개념**     | 여러 에이전트가 \*\*대화(dialogue)\*\*를 통해 협업<br>– 에이전트 간 메시지 교환에 기반           | 워크플로우를 **그래프(graph)** 구조로 표현<br>– 노드(node): 작업 단위<br>– 엣지(edge): 데이터 흐름     |
+| **상태 관리**     | 대화 맥락 유지에 초점, 확장 가능한 multi-agent 협업 지원                            | **Stateful** 그래프 기반 설계로<br>– 노드 간 공유 상태 유지<br>– 내장된 영속성(persistence) 및 재시작·휴지 기능 지원 |
+| **API 언어 지원** | Python, .NET (AgentChat, Core, Extensions)<br>AutoGen Studio(로우코드 UI)  | Python, JavaScript (LangGraph SDK)<br>LangChain Expression Language(LCEL) 확장  |
+| **워크플로우 표현**  | 주로 **메시지 교환 패턴**(prompt→response)으로 정의                                                 | **그래프 정의**(노드·엣지·트리거) 및 조건 분기, 순환 구조를 명시적으로 모델링                                        |
+| **배포·확장성**    | AutoGen Studio를 통한 프로토타이핑 및 확장<br>Extensions 생태계 활용                   | LangGraph Platform: 서버리스·배포·모니터링 지원<br>통합 개발 스튜디오 제공                       |
+| **주요 활용 사례**  | 수학 문제 해결, 코딩 리뷰, QA, 의사결정 지원 등<br>“대화형 에이전트팀” 구성                     | 복잡한 분기·재귀 로직 포함 워크플로우, 장기 실행 태스크, 휴먼 인터벤션 포인트 등                                      |
+
+
+
 > ※ 추가 업데이트 및 검증 예정
 {: .prompt-tip }
 
