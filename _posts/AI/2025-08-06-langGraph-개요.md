@@ -69,6 +69,12 @@ graph.add_edge("aging", END)
 
 여기서 aging은 앞서 Node 부분에서 정의한 Node이다.
 
+### 5) checkpoint
+앞서 개요에서 말했듯이 langGraph에서는 ```상태 저장```이 가능한 에이전트를 만들수있다.   
+이 상태저장이 가능하기 위해서는 저장소가 필요한데, LangGraph에서는 기본적으로 inMemory 저장소를 지원하며
+postgres와 sqlite를 기본으로 하는 DB 저장소를 제공한다.
+만약 interface를 구현한다면 다른 저장소를 사용할 수도 있다.
+
 ## 3. LangChain과의 관계
 동일한 곳에서 만들었다. 하지만 목적이 좀 다르다.    
 아래의 표를 살펴보자.
@@ -93,3 +99,4 @@ graph.add_edge("aging", END)
 - https://academy.langchain.com/courses/intro-to-langgraph "Foundation: Introduction to LangGraph - LangChain Academy"
 - https://pypi.org/project/langgraph/0.0.25/ "langgraph - PyPI"
 - [LangGraph 예시](https://www.linkedin.com/pulse/exploring-frontiers-ai-top-5-use-cases-langchain-dileep-kumar-pandiya-hos3e/)
+- [LangGraph - Persistence](https://langchain-ai.github.io/langgraph/concepts/persistence/)
