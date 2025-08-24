@@ -30,12 +30,95 @@ use_math: true
 
 ## 2. 구조
 ### 1) 어텐션(Attention)
-### 2) Multi-Head Attention
-### 3) 위치 정보 추가
-### 4) Transformer
+어텐션은 입력 시퀀스의 각 요소(토큰)가 시퀀스의 다른 요소들과 어떤 관련(중요도)을 가지는지를 학습해 가중합으로 문맥을 만드는 메커니즘이다.
+Transformer에서 주로 사용하는 형태는 Scaled Dot-Product Attention이다.
 
-> 추가 업데이트 예정
+![img.png](/assets/blog/algorithm/AI/deeplearning/어텐션/img.png)   
+"Attention is all you need" 논문에서 발췌
+
+$$ Attention(Q,K,V) =softmax(\frac{QK^{T}}{\sqrt{d_{k}}})V $$
+
+여기서 Q는 Query, K는 Key, V는 Value를 뜻하며 각각 값은 벡터이다.   
+이는 입력 임베딩의 서로 다른 선형 투영이며 $d_{k}$ 는 key 벡터 차원이다.  
+$d_{k}$값에 루트가 씌워진 이유는 key 차원이 커질 경우 분모값이 커지는데 소프트맥스 함수 특성상
+기울기가 0에 가까워지기 때문이다. 이를 어느정도 막고자 루트를 씌워서 분모값이 급격히
+커지는 것을 막는다.
+
+간단히 말하자면 현재 처리중인 토큰이 의미 결정에 영향을 많이 준다면 value 벡터가
+더 큰 가중치로 합쳐져서 최종 결과에 영향을 많이 준다.
+
+#### ※ 선형 투영
+입력 벡터에 학습 가능한 행렬을 곱해 다른 차원 혹은 다른 기저로 선형 변환하는 것을 말한다.  
+아래의 예시를 보자, 임베딩 한 벡터 x = [1,2]가 있고 투영행렬 W가 아래와 같이 있다고 해보자.
+
+$$ W = \begin{bmatrix}
+1 & 1 \\
+1 & -1
+\end{bmatrix} $$
+
+이때 선형 투영 결과 y=xW면 아래와 같이 계산될 수 있다.
+- 1 X 1 + 2 X 1 = 1 + 2 = 3
+- 1 X 1 + 2 X (-1) = 1 - 2 = -1
+
+위 결과는 y=[3,-1]로 나타낼 수 있게 된다. 이렇게 입력을 다른 축 혹은 기저로 재표현 하는 것을 말한다.   
+어텐션에서는 각기 다른 가중치 형렬을 곱하며 여기서는 아래와 같은 Q,K,V를 사용한다.
+
+$$Q=XW^{Q}$$   
+$$K=XW^{K}$$   
+$$V=XW^{V}$$
+
+기본적으로는 편향(bias)는 생략해서 설명하지만 실제 구현에서는 포함될 수 있다.
+
+### 2) Multi-Head Attention
+어텐션은 어떤 특정 종류의 관계만 다룰수 있으므로 Transformer에서는 여러개의 어텐션을
+병렬로 운용하는데 Multi-Head Attention이라고 한다.   
+각 헤드는 위에서 봤던 서로 다른 선형 투영 $QW^{Q}_{i},KW^{K}_{i},VW^{V}_{i}$ 를 통해 입력을 변환해
+독립적으로 어텐션을 계산하고 그 결과를 이어 붙인다음에 다시 선형 변환 $W^{O}$를 한다.
+이를 논문에 나타난 수식을 표현하면 아래와 같다. 그 아래의 그림 역시 논문에 표현된 그림이다.
+
+$$MultiHead(Q,K,V) = Concat(head_{1}m...,head_{h})W^{O}$$   
+$$where head_{i} = Attention(QW^{Q}_{i},KW^{K}_{i},VW^{V}_{i})$$
+
+![img_1.png](/assets/blog/algorithm/AI/deeplearning/어텐션/img_1.png)
+
+각 헤드는 주어-동사 관계나, 수식적 일치, 의존성들을 각기 다르게 담당하여 처리하기 때문에 표현력이
+크게 올라간다.
+
+### 3) 위치 정보 추가
+순서를 명시적으로 처리하지 않는 순수 어텐션 구조에서는 토큰의 순서 정보가 입력에 주어져야 한다.
+논문에서는 아래와 같이 단어 임베딩에 다음과 같은 사인/코사인 기반의 위치 인코딩을 더한다.   
+
+$$PE_{pos,2i} = sin(\frac{pow}{10000^{2i/d_{model}}})$$   
+$$PE_{pos,2i+1} = cos(\frac{pow}{10000^{2i/d_{model}}})$$
+
+> 이 논문 이후에는 상대적 위치 인코딩, RoPE 등 다른 대체 방식이 많이 제안되었다.
+{: .prompt-tip }
+
+### 4) Transformer
+Transformer는 인코더(encoder)와 디코더(decoder) 를 각각 여러 층(layer)로 쌓은 구조이다.
+논문에서는 각각 6개 층으로 구성했다.
+
+#### a. 인코더 블록(한 층)
+- Multi-Head Self-Attention (입력 토큰들 간의 self-attention)
+- Add & LayerNorm (잔차 연결 + 층 정규화)
+- Position-wise Feed-Forward Network (FFN)   
+  $$ : 모든 위치에 같은 FFN을 적용
+- Add & LayerNorm
+
+여기서 잔차 연결(residual connection)과 LayerNorm은 학습 안정성과 정보 흐름을 돕는다.
+
+#### b. 디코더 블록(한 층)
+- Masked Multi-Head Self-Attention (미래 토큰 마스킹)
+- Add & LayerNorm
+- Multi-Head Encoder-Decoder Attention (쿼리는 디코더, 키/값은 인코더 출력)
+- Add & LayerNorm
+- FFN + Add & LayerNorm
+
+디코더의 3단계는 디코더가 인코더에서 인코딩된 문맥(소스 언어)을 참조하도록 해준다.
+
+> 설명이 어렵다 싶은 부분은 내용 추가 업데이트 예정, 내용 추가 검증 예정
 {: .prompt-tip }
 
 # 참고 자료
 - “Attention Is All You Need” (Vaswani et al., 2017)
+- [IBM - What is positional encoding?](https://www.ibm.com/think/topics/positional-encoding)
