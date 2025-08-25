@@ -98,6 +98,8 @@ $$PE_{pos,2i+1} = cos(\frac{pow}{10000^{2i/d_{model}}})$$
 Transformer는 인코더(encoder)와 디코더(decoder) 를 각각 여러 층(layer)로 쌓은 구조이다.
 논문에서는 각각 6개 층으로 구성했다.
 
+![img.png](/assets/blog/algorithm/AI/deeplearning/어텐션/img_2.png)
+
 #### a. 인코더 블록(한 층)
 - Multi-Head Self-Attention (입력 토큰들 간의 self-attention)
 - Add & LayerNorm (잔차 연결 + 층 정규화)
@@ -115,6 +117,30 @@ Transformer는 인코더(encoder)와 디코더(decoder) 를 각각 여러 층(la
 - FFN + Add & LayerNorm
 
 디코더의 3단계는 디코더가 인코더에서 인코딩된 문맥(소스 언어)을 참조하도록 해준다.
+
+#### ※ Add
+여기서 말하는 Add는 Residual Connection, 즉 잔차 연결을 말하는 것으로
+입력을 변환한 결과(attention)에 원래 입력을 그대로 더해주는 방식을 말한다.   
+수식으로 나타내면
+
+$$ y = f(x) + x$$
+
+형태로 표현되는데 여기서 f(x)는 어텐션이나 FFN의 출력을 말한다.   
+위와 같이 처리되면 기울기 소실 및 폭주 문제를 어느정도 완화할 수 있다.
+
+#### ※ LayerNorm
+신경망 각 층의 출력을 특징(feature) 차원 단위로 정규화하는 것이다.
+입력 벡터 x (차원 d)에 대해서 평균과 분산을 계산하고 정규화하는 것이다.
+
+$\mu$ : 해당 벡터의 평균   
+$\sigma$ : 표준 편차   
+$\gamma, \beta$ : 학습 가능한 스케일/시프트 파라미터
+
+$$ LayerNorm(x)=\frac{x-\mu}{\sigma}\cdot \gamma+\beta $$
+
+LayerNorm은 한 시퀀스의 한 토큰 벡터 내부에서 정규화를 하기 때문에 시퀀스 길이/배치 크기와 무관하게 안정적으로 학습할 수 있으며,
+출력 분포를 일정하게 맞춰주므로 학습이 더 안정되고 빠르다
+
 
 > 설명이 어렵다 싶은 부분은 내용 추가 업데이트 예정, 내용 추가 검증 예정
 {: .prompt-tip }
