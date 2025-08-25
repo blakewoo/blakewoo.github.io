@@ -72,11 +72,11 @@ $$V=XW^{V}$$
 ### 2) Multi-Head Attention
 어텐션은 어떤 특정 종류의 관계만 다룰수 있으므로 Transformer에서는 여러개의 어텐션을
 병렬로 운용하는데 Multi-Head Attention이라고 한다.   
-각 헤드는 위에서 봤던 서로 다른 선형 투영 $QW^{Q}_{i},KW^{K}_{i},VW^{V}_{i}$ 를 통해 입력을 변환해
-독립적으로 어텐션을 계산하고 그 결과를 이어 붙인다음에 다시 선형 변환 $W^{O}$를 한다.
+각 헤드는 위에서 봤던 서로 다른 선형 투영 $$ QW^{Q}_{i}, KW^{K}_{i}, VW^{V}_{i} $$ 를 통해 입력을 변환해
+독립적으로 어텐션을 계산하고 그 결과를 이어 붙인다음에 다시 선형 변환 $$ W^{O} $$를 한다.
 이를 논문에 나타난 수식을 표현하면 아래와 같다. 그 아래의 그림 역시 논문에 표현된 그림이다.
 
-$$MultiHead(Q,K,V) = Concat(head_{1}m...,head_{h})W^{O}$$   
+$$MultiHead(Q,K,V) = Concat(head_{1},...,head_{h})W^{O}$$   
 $$where head_{i} = Attention(QW^{Q}_{i},KW^{K}_{i},VW^{V}_{i})$$
 
 ![img_1.png](/assets/blog/algorithm/AI/deeplearning/어텐션/img_1.png)
@@ -102,7 +102,7 @@ Transformer는 인코더(encoder)와 디코더(decoder) 를 각각 여러 층(la
 - Multi-Head Self-Attention (입력 토큰들 간의 self-attention)
 - Add & LayerNorm (잔차 연결 + 층 정규화)
 - Position-wise Feed-Forward Network (FFN)   
-  $$ : 모든 위치에 같은 FFN을 적용
+  $FFN(x) = max(0,xW_{1}+b_{1})W_{2}+b_{2}$ : 모든 위치에 같은 FFN을 적용
 - Add & LayerNorm
 
 여기서 잔차 연결(residual connection)과 LayerNorm은 학습 안정성과 정보 흐름을 돕는다.
