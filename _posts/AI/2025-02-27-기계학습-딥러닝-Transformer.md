@@ -141,10 +141,33 @@ $$ LayerNorm(x)=\frac{x-\mu}{\sigma}\cdot \gamma+\beta $$
 LayerNorm은 한 시퀀스의 한 토큰 벡터 내부에서 정규화를 하기 때문에 시퀀스 길이/배치 크기와 무관하게 안정적으로 학습할 수 있으며,
 출력 분포를 일정하게 맞춰주므로 학습이 더 안정되고 빠르다
 
+## 3. 응용
+### 1) 기계 번역, Seq2Seq
+애당초 Attention is all you need 논문 자체가 RNN을 대체한 기계 번역 논문이었다.
+
+### 2) 사전학습 언어모델 - Bert(Transformer encoder 기반)
+Transformer에서 인코더 블록만을 쌓아 만든 모델로, 입력 문맥의 좌우 모두를 보는 사전 학습 모델이다.
+입력 토큰의 일부를 [MASK]로 바꾸고 그 마스크된 토큰을 문맥 좌우로 예측하도록 학습한다.
+
+일반적으로 이 BERT 모델은 분류, 질의응답, 개체명 인식, 문장 유사도 등 이해 중심 업무에 널리 사용된다.
+
+### 3) 대규모 생성형 언어모델(Large Language Model) - GPT 계열(Transformer decoder 기반)
+Transformer의 디코더(그대로 사용하는 경우도 있고 변경해서 사용하기도한다)만을 사용하여 만든 모델이다.   
+Generative Pre-trained Transformer의 약자로 GPT 라고 불리며 이를 해석하면 사전 학습된 생성형 언어 모델이다.   
+우리가 많이 사용하는 Chat Gpt나 제미나이, 그록 같은것들은 모두 GPT 계열이다.    
+
+토큰을 왼쪽에서 오른쪽 순서로 예측하도록 학습되었기 때문에 자연스러운 생성에 강하다.   
+하지만 이 경우 없는 사실을 만들어내는 환각(Hallucination) 현상이나 편향적 대답, 유해한 정보등이 포함될 수 있어서
+이를 줄이기 위해 많은 노력을 기울이고 있다.
+
+
+그 외에도 Attention과 Transformer 기법은 사실상 기본적인 모델로써 자리잡았다.
 
 > 설명이 어렵다 싶은 부분은 내용 추가 업데이트 예정, 내용 추가 검증 예정
 {: .prompt-tip }
 
 # 참고 자료
-- “Attention Is All You Need” (Vaswani et al., 2017)
+- Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N. Gomez, Lukasz Kaiser, & Illia Polosukhin. (2023). Attention Is All You Need.
 - [IBM - What is positional encoding?](https://www.ibm.com/think/topics/positional-encoding)
+- Jacob Devlin, Ming-Wei Chang, Kenton Lee, & Kristina Toutanova. (2019). BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding.
+- Alec Radford at al, Improving Language Understanding by Generative Pre-Training
