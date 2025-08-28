@@ -55,10 +55,10 @@ use_math: true
 
 #### a. 어댑터(Adapters)
 - 아이디어    
-  Transformer 블록 사이(또는 내부)에 작은 MLP(예: down-projection → nonlinearity → up-projection)
-  형태의 모듈을 삽입하고 그 모듈만 학습. 원 논문(Houlsby et al., 2019)은 GLUE 등 여러 태스크에서 적은 추가
-  파라미터로 full fine-tuning에 근접하는 성능을 보였음을 보고했다. 어댑터 방식은 태스크별로 작은 어댑터 파일만 저장하면
-  되므로 멀티태스크·버전관리 측면에서 유리하다.
+  Transformer 블록 사이(또는 내부)에 작은 MLP(예: down-projection(높은 차원에서 낮은 차원으로) → nonlinearity(비선형 처리, ReLU 같은 함수)
+  → up-projection(낮은 차원에서 높은 차원으로)) 형태의 모듈을 삽입하고 그 모듈만 학습. [원 논문](https://arxiv.org/pdf/1902.00751) 은
+  GLUE 등 여러 태스크에서 적은 추가 파라미터로 full fine-tuning에 근접하는 성능을 보였음을 보고했다. 어댑터 방식은 태스크별로 작은 어댑터
+  파일만 저장하면 되므로 멀티태스크·버전관리 측면에서 유리하다.
 
 
 - 장점   
@@ -108,6 +108,10 @@ use_math: true
 - 실무적 장점   
   큰 모델을 비교적 저비용 장비에서 튜닝할 수 있어, 연구·프로토타이핑 접근성을 크게 높임. 다만 양자화·수치안정성·퍼포먼스 트레이드오프를 이해하고
   적용해야 함.
+
+#### ※ Adapter VS LoRA
+간단히 말해서 Transformer에 입력으로 들어가는 행렬에 추가 행렬이 붙는 형태가 LoRA이고, Transformer 블록 내부에 새로운 작은 MLP 모듈을 추가하는
+형태가 Adapter이다. 
 
 > 문맥 및 내용 다듬기 및 내용 검증 예정
 {: .prompt-tip }
