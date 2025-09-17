@@ -145,6 +145,48 @@ Pn은 페이지 넘버이고, DIR[N,M]이 가로로 N번째 세로로 M번째 �
   이때 디렉터리를 확장 또는 재생성(일부 복제)해야 함. 일반적으로 디렉터리의 행/열을 반복 복제하거나 더 세밀한 인덱스를 만들게 됨.
   구현상 디렉터리 분할은 비용이 크므로 드물게 발생하도록 설계(버킷 분할 전략, 축 선택 규칙 등)를 조정함.
 
+#### 3) Linear Quadtree(선형 쿼드 트리)
+기본적으로 2차원 공간을 재귀적으로 4분면으로 분할하며 공간 안의 객체의 밀도를 조절하는 방식이다.   
+요컨대 각 사분면에 겹치는 사각형이 페이지 용량 미만이 될 때까지 4분면으로 나누는 방식이라고 할 수 있다.   
+
+이렇게 나눠진 사분면을 B+트리로 만들고, 이 트리의 각 리프노드들을 1차원 순서로 정렬한 뒤 차례대로 1차원 디스크 공간에 넣는 방식이다.
+
+##### a. 예시
+페이지당 4개의 Polygon 정보를 담을 수 있다고 할 때 아래의 그림을 보자.
+
+![img.png](/assets/blog/database/spacial_database/spatial_access_method/img_7.png)
+
+위와 같이 2차원 공간 R에 다음과 같이 다각형의 MBB가 있다. 먼저, R을 4분면으로 나눈다.
+
+![img_1.png](/assets/blog/database/spacial_database/spatial_access_method/img_8.png)
+
+위를 트리로 나타내면 아래와 같다.
+
+![img_2.png](/assets/blog/database/spacial_database/spatial_access_method/img_9.png)
+
+각 리프노드는 페이지이다. polygon이 다른 분면에 걸쳐있다면 각 분면에 복제하여 같이 저장한다.
+페이지당 4개의 Polygon 정보를 담을 수 있는데, 리프노드 0을 보면 4개가 초과되어있다.   
+따라서 리프노드 0을 분할하기 위해 공간을 다시 4분면으로 분할 한다.
+
+![img_3.png](/assets/blog/database/spacial_database/spatial_access_method/img_10.png)
+
+위와 같이 분할된 값을 다시 트리로 그리면 아래와 같다.
+
+![img_4.png](/assets/blog/database/spacial_database/spatial_access_method/img_11.png)
+
+##### b. 예시에 대한 세부 설명
+- ordering 방식을 보면 0,1,2,3에서 초과된 분면에서 나뉘면 그 뒤에 다시 0,1,2,3으로 나뉘는 것을 볼 수 있다.   
+이는 사전식 정렬(Lexicographical Order)을 위한 것으로 각 정보를 1차원에 매핑시키기 위해 위와 같이 부여한 것이다.   
+예시에서 사용한 방식은 z-order 방식인데, 그외 hilbert 곡선 방식도 있다.
+  
+- 각 분면에 겹치는 mbb가 많을 수록 데이터의 중복이 많은 것을 알 수 있다. 
+  
+- 각 리프노트는 mbb의 값과, 해당 위치의 page 주소를 가지고 있다.
+
+##### c. 단점
+- 소수의 자식 노드는 페이지의 작은 부분만 차지하는 4개로 고정된다.
+- 쿼드트리 쿼리 시간은 트리 깊이와 관련이 있으며, 깊이가 클 수 있다.
+- 페이지에 들어간 polygon의 중복이 매우 많다.
 
 > 추가 업데이트 및 검증 예정
 {: .prompt-tip }
