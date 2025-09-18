@@ -145,14 +145,56 @@ Pn은 페이지 넘버이고, DIR[N,M]이 가로로 N번째 세로로 M번째 �
   이때 디렉터리를 확장 또는 재생성(일부 복제)해야 함. 일반적으로 디렉터리의 행/열을 반복 복제하거나 더 세밀한 인덱스를 만들게 됨.
   구현상 디렉터리 분할은 비용이 크므로 드물게 발생하도록 설계(버킷 분할 전략, 축 선택 규칙 등)를 조정함.
 
-#### 3) Linear Quadtree(선형 쿼드 트리)
+#### c. Linear Quadtree(선형 쿼드 트리)
 기본적으로 2차원 공간을 재귀적으로 4분면으로 분할하며 공간 안의 객체의 밀도를 조절하는 방식이다.   
 요컨대 각 사분면에 겹치는 사각형이 페이지 용량 미만이 될 때까지 4분면으로 나누는 방식이라고 할 수 있다.   
 
-이렇게 나눠진 사분면을 B+트리로 만들고, 이 트리의 각 리프노드들을 1차원 순서로 정렬한 뒤 차례대로 1차원 디스크 공간에 넣는 방식이다.
+이렇게 나눠진 사분면을 B+트리로 만들고, 이 트리의 각 리프노드들을 1차원 순서로 정렬한 뒤 차례대로 1차원 Index에(주로 B+ tree) 연결후
+해당하는 디스크 공간에 넣는 방식이다.
 
-##### a. 예시
-페이지당 4개의 Polygon 정보를 담을 수 있다고 할 때 아래의 그림을 보자.
+각 리프노드는 Mbb 값과 해당 Polygon의 데이터가 포함된 Page 주소를 갖고 있으며 Mbb 값이 있기 때문에 비교적 빠른 속도로 filtering이 가능하다.
+
+##### ① 인덱싱 방법
+- Z-order
+
+순서를 Z 모양으로 구성한다고 해서 Z-order이다.   
+어떤 2차원 평면이 있다고 할 때 4분면으로 나누면 아래와 같은 그림으로 순서를 잡는다.
+
+![img.png](/assets/blog/database/spacial_database/spatial_access_method/img_12.png)
+
+만약 4개가 아닌 각각의 사분면에 한번 더 잘릴 경우 아래와 같다.
+
+![img_1.png](/assets/blog/database/spacial_database/spatial_access_method/img_13.png)
+
+위와 같이 계속해서 Z 형태로 연속해서 순서를 부여한다. 이때 순서에 대한 문자는 사전식 정렬(Lexicographical Order)을 따르며
+이 순서를 기준으로 B+ tree에 Mapping한다.
+
+이러한 Z-order는 키 계산이 Hilbert curve 보단 단순해서 연산 리소스를 크게 잡아먹진 않는다.   
+하지만 2차원 평면 상에서 데이터가 가까울 경우에 1차원 인덱스까지 가깝진 않은데 이는 검색시에   
+쓸데 없는 데이터까지 갖고오는 문제를 초래할 수 있다.
+
+- Hilbert curve
+
+앞서 말했듯이 Z-order의 경우에는 2차원에서 원래 데이터가 가깝다고 1차원 인덱스까지 가깝진 않다.  
+하지만 지금 이야기하는 Hilbert curve의 경우에는 Z-order 보다는 좀 더 가까워서(지역성이 좋다고 말한다)   
+효율적이다.
+
+기본적으로 2차원 평면이 있을 때 이를 4분할한 뒤 순서를 아래와 같이 곡선으로 부여한다.
+
+![img_2.png](/assets/blog/database/spacial_database/spatial_access_method/img_14.png)
+
+만약 각 사분면의 데이터가 용량을 초과하여 추가적으로 분할해야할 경우 아래와 같이 순서를 부여한다.
+
+![img_3.png](/assets/blog/database/spacial_database/spatial_access_method/img_15.png)
+
+이는 기본적인 U 자형 곡선을 동일한 규칙으로 패턴을 만들어 프랙탈과 같이 배치하는 형태이다.
+
+이러한 Hilbert curve는 2 차원 평면상에서 각 데이터의 근접성을 Z-order에 비해 비교적 잘 보존한다
+때문에 범위 질의(특히 작은 지역)의 I/O 감소할 수 있다. 하지만 키 계산이 Z-order보다 복잡(회전/반전 상태 관리 필요)하고
+2 차원 공간의 모든 이웃 관계를 완벽히 보존할 수는 없다.
+
+##### ② 예시
+페이지당 4개의 Polygon 정보를 담을 수 있다고 할 때 아래의 그림을 보자. 그림에서 Order는 Z-order로 표현했다.
 
 ![img.png](/assets/blog/database/spacial_database/spatial_access_method/img_7.png)
 
@@ -174,16 +216,23 @@ Pn은 페이지 넘버이고, DIR[N,M]이 가로로 N번째 세로로 M번째 �
 
 ![img_4.png](/assets/blog/database/spacial_database/spatial_access_method/img_11.png)
 
-##### b. 예시에 대한 세부 설명
-- ordering 방식을 보면 0,1,2,3에서 초과된 분면에서 나뉘면 그 뒤에 다시 0,1,2,3으로 나뉘는 것을 볼 수 있다.   
-이는 사전식 정렬(Lexicographical Order)을 위한 것으로 각 정보를 1차원에 매핑시키기 위해 위와 같이 부여한 것이다.   
-예시에서 사용한 방식은 z-order 방식인데, 그외 hilbert 곡선 방식도 있다.
-  
-- 각 분면에 겹치는 mbb가 많을 수록 데이터의 중복이 많은 것을 알 수 있다. 
-  
-- 각 리프노트는 mbb의 값과, 해당 위치의 page 주소를 가지고 있다.
+보면 알겠지만 각 분면에 겹치는 mbb가 많을 수록 데이터의 중복이 많은 것을 알 수 있다.    
+아래는 15와 16가 추가 되는 경우 어떻게 분할되는지를 설명하는 그림이다.
 
-##### c. 단점
+![img_4.png](/assets/blog/database/spacial_database/spatial_access_method/img_16.png)
+
+보면 알겠지만 사분면 1과 15가 추가되었고 0,1에 걸쳐 16이 추가된 걸 볼 수 있다.   
+이 경우 사분면 1의 용량이 초과되었음로 4분할 하여 10,11,12,13으로 만든다.   
+16의 경우 사분면의 용량이 초과하지 않았으므로 분할없이 추가된다.   
+
+이를 트리로 나타내면 아래와 같다.
+
+![img_5.png](/assets/blog/database/spacial_database/spatial_access_method/img_17.png)
+
+
+##### ③ 단점
+위 방식의 단점을 정리하면 아래와 같다.
+
 - 소수의 자식 노드는 페이지의 작은 부분만 차지하는 4개로 고정된다.
 - 쿼드트리 쿼리 시간은 트리 깊이와 관련이 있으며, 깊이가 클 수 있다.
 - 페이지에 들어간 polygon의 중복이 매우 많다.
