@@ -194,6 +194,7 @@ Pn은 페이지 넘버이고, DIR[N,M]이 가로로 N번째 세로로 M번째 �
 2 차원 공간의 모든 이웃 관계를 완벽히 보존할 수는 없다.
 
 ##### ② 예시
+###### ⓐ 인덱스 빌드
 페이지당 4개의 Polygon 정보를 담을 수 있다고 할 때 아래의 그림을 보자. 그림에서 Order는 Z-order로 표현했다.
 
 ![img.png](/assets/blog/database/spacial_database/spatial_access_method/img_7.png)
@@ -217,6 +218,8 @@ Pn은 페이지 넘버이고, DIR[N,M]이 가로로 N번째 세로로 M번째 �
 ![img_4.png](/assets/blog/database/spacial_database/spatial_access_method/img_11.png)
 
 보면 알겠지만 각 분면에 겹치는 mbb가 많을 수록 데이터의 중복이 많은 것을 알 수 있다.    
+
+###### ⓑ 값 추가
 아래는 15와 16가 추가 되는 경우 어떻게 분할되는지를 설명하는 그림이다.
 
 ![img_4.png](/assets/blog/database/spacial_database/spatial_access_method/img_16.png)
@@ -229,6 +232,69 @@ Pn은 페이지 넘버이고, DIR[N,M]이 가로로 N번째 세로로 M번째 �
 
 ![img_5.png](/assets/blog/database/spacial_database/spatial_access_method/img_17.png)
 
+###### ⓒ 포인트 검색
+찾고자 하는 점 P가 있을 때 위 예시에서 검색하는 절차는 아래와 같다.
+
+```
+result = ∅
+l = POINTLABEL(P)               // Step 1: 점 P의 쿼드트리 라벨 계산
+[L, p] = MAXINF(l)             // Step 2: B+-트리에서 l 이하(또는 최적의 엔트리)를 찾음
+page = READPAGE(p)             // Step 3: 해당 페이지(디스크/메모리 블록)를 읽음
+for each e in page do
+    if (e.mbb contains P) then result += {e.oid}   // MBB(최소경계박스)로 최종 검사
+return result
+```
+
+1. 점 P가 어드 쿼드트리 셀안에 있는지 찾아서 반환(l)한다. 가령 마지막 예시에서 00 평면에 있다면 00을 반환하는
+식이다.
+   
+2. 어느 평면에 있는지 얻었다면(위 예시에선 l값 즉, 00) 이를 이용해서 B+ 트리에서 이 값을 가지고
+   탐색(MAXINF)하여 관련 페이지 포인터(p)를 얻는다.
+
+3. 해당 페이지 포인터를 읽어서(READPAGE(p)) page 안에 있는 값을 얻는다(1,5,2,6).
+
+4. 얻은 값을 반복문으로 돌려서 해당 MBB안에 P 값이 포함되어있는지 확인하고 반환 집합(result)에 넣는다.
+
+5. 모두 검사했으면 반환 집합을 반환한다.
+
+###### ⓓ 범위 검색
+아래는 어떤 직사각형 W에 걸쳐있는 객체들을 찾는 방법이다.
+
+```
+result = ∅
+// Step 1: 윈도우의 꼭짓점 라벨 계산
+l  = POINTLABEL(W.nw)
+[L, p] = MAXINF(l)
+l' = POINTLABEL(W.se)
+[L', p'] = MAXINF(l')
+
+// Step 2: B+-트리에서 키 구간 [L, L']에 해당하는 엔트리 집합 Q 얻기
+Q = RANGEQUERY([L, L'])
+
+// Step 3: 각 엔트리 q ∈ Q에 대해
+for each q in Q do
+    if QUADRANT(q.l) overlaps W then          // 쿼드셀(그 엔트리가 가리키는 영역)이 윈도우와 겹치면
+        page = READPAGE(q.p)                  // 페이지 읽기
+        for each e in page do
+            if (e.mbb overlaps W) then result += {e.oid}  // MBB(객체 경계)가 W와 겹치면 후보로 추가
+        end for
+    end if
+end for
+
+// 정렬하고 중복 제거
+SORT(result); REMOVE_DUPL(result)
+return result
+```
+
+1. W값의 범위를 나타내는 2개의 점인 NW(왼쪽 위)와 SE(오른쪽 아래) 점의 쿼드 트리의 셀이름(라벨, NW=l, SE=l')을 찾아서 반환한다.
+
+2. l ~ l'에 해당하는 Page를 모두 읽어온다.
+
+3. 해당 Page에서 mbb의 값을 모두 갖고 와서 W와 겹치면 result 배열에 넣는다.
+
+4. result를 정렬하고 중복을 제거한다
+
+5. result 배열을 반환한다.
 
 ##### ③ 단점
 위 방식의 단점을 정리하면 아래와 같다.
