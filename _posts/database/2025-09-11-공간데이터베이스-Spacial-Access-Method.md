@@ -303,6 +303,57 @@ return result
 - 쿼드트리 쿼리 시간은 트리 깊이와 관련이 있으며, 깊이가 클 수 있다.
 - 페이지에 들어간 polygon의 중복이 매우 많다.
 
+#### d. The z-ordering tree
+이전까지의 방법들은 모두 Polygon들의 mbb 값을 가지고 비교를 했다.   
+하지만 지금 소개할 방법은 mbb 값이 아닌 실제 polygon 값을 가지고 모델링하는 방식이다.
+
+이전의 linear quadtree는 그때 그때 4개로 분할했던 반면 Z-ordering tree는 
+전체 2차원 평면을 4의 d승으로 미리 나누어두며, 실제 polygon의 point와 edge가 겹치는 부분을 최대 차수가 4인 B+ 트리의 leaf node에
+사분면 이름과 어떤 polygon인지 정보를 가지고 있다.
+
+아래의 경우에는 d가 3으로 64개의 사분면으로 나뉜 평면이다.
+
+![img.png](/assets/blog/database/spacial_database/spatial_access_method/img_18.png)
+
+어떤 polygon a가 위와 같이 해당 사분면에 대해서 overlap되어있다면 overlap된 사분면 번호는 아래와 같다.
+
+{023, 03, 103, 12, 201, 210, 211, 300, 301, 302}
+
+중간 중간 4개씩 겹친건 상위 번호로 퉁칠 수 있다(ex- 030,031,032,033 = 03)
+
+한 개의 polygon은 명료하지 않으니 다수의 polygon으로 설명을 해보겠다.
+
+(그림1)    
+![img_1.png](/assets/blog/database/spacial_database/spatial_access_method/img_19.png)
+
+a~h까지 해당하는 polygon들이 속한 사분면을 적으면 아래와 같다.
+
+a={201,203,21,230,231}   
+b={233,322}   
+c={01,030,031}   
+d={02}   
+e={303,312,321,330}   
+f={102,103,120,121,123}  
+g={211}   
+h={303}   
+
+위 정보를 최대 차수가 4인 B+ tree에 넣으면 아래와 같이 표현된다.
+
+![img_2.png](/assets/blog/database/spacial_database/spatial_access_method/img_20.png)
+
+위의 (그림 1)에 보면 검색 Window인 W를 볼 수 있는데, 이를 기준으로 검색하는 알고리즘은 아래와 같다.
+
+1. result = ∅로 초기화.   
+2. (Step 1) 윈도우 W의 두 꼭짓점 W.nw(왼쪽 위), W.se(오른쪽 아래)를 Morton/Point label로 변환:      
+  l = POINTLABEL(W.nw)   
+  l' = POINTLABEL(W.se)   
+  (그 옆의 MAXINF 호출은 각 위치에 대응하는 레이블/접두사 형태의 범위 경계를 계산하는 보조 연산입니다 — 즉, Z-order상에서 이 점을 포함하는 레이블 구간의 경계값을 얻는다.)   
+3. (Step 2) 위에서 얻은 두 경계 L과 L'으로 B+트리에 한 번의 범위 질의(range query)를 날려서, 키 l이 [L, L']에 속하는 모든 엔트리 E = { [l, oid] } 를 가져온다. 여기서 각 엔트리의 l은 어떤 쿼드트리/사분구역(또는 그 노드의 Morton 레이블)을 가리키고, oid는 그 사분구역에 저장된 객체 식별자이다.
+4. (Step 3) 얻은 후보들 E를 하나씩 검사:     
+  각 엔트리 e가 가리키는 사분구역(QUADRANT(e.l))이 실제로 윈도우 W와 겹치는지(geometric overlap) 테스트한다.   
+  겹치면 e.oid를 결과 집합에 추가.   
+5. 결과를 정렬하고(SORT(result)) 중복(REMOVE_DUPL)을 제거한 뒤 반환.   
+
 > 추가 업데이트 및 검증 예정
 {: .prompt-tip }
 

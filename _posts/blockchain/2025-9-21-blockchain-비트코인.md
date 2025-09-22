@@ -1,7 +1,7 @@
 ---
 title: Blockchain - bitcoin
 author: blakewoo
-date: 2025-9-21 23:00:00 +0900
+date: 2025-9-22 23:00:00 +0900
 categories: [Blockchain]
 tags: [Blockchain, Bitcoin] 
 render_with_liquid: false
