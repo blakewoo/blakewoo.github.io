@@ -354,6 +354,47 @@ h={303}
   겹치면 e.oid를 결과 집합에 추가.   
 5. 결과를 정렬하고(SORT(result)) 중복(REMOVE_DUPL)을 제거한 뒤 반환.   
 
+#### e. kd-trees
+2차원 평면에서 kd-tree를 생성할때 총 세가지 방법이 있다. 첫번째부터 천천히 알아보자.
+
+##### ⓐ 첫번째 방법
+1. x나 y축을 정한다.
+2. 해당 축에서 가장 중앙값을 가진 값을 찾아 해당 값을 기준으로 절반으로 나눈다.
+3. 반복하여 x나 y축의 중앙값을 찾아 절반으로 나눈다.
+
+아래의 예시를 보자.
+
+![img.png](/assets/blog/database/spacial_database/spatial_access_method/img_21.png)
+
+l 번호 순서대로 나뉘는 것이다. 트리로 나타내면 아래와 같다.
+
+![img_1.png](/assets/blog/database/spacial_database/spatial_access_method/img_22.png)
+
+##### ⓑ 두번째 방법
+첫번째 방법에서는 중간 값을 가진 Node로 나누었다면 두번째 방법은 Node가 기준이 아니라 별도의 축을 생성하는 것이다.
+x축이든 y축이든 가장 넓게 퍼져있는 축을 먼저 자르고 각각 중간 값을 자른다.
+그림으로 나타내면 아래와 같다.
+
+![img_2.png](/assets/blog/database/spacial_database/spatial_access_method/img_23.png)
+
+이를 트리로 나타내면 아래와 같다.
+
+![img_3.png](/assets/blog/database/spacial_database/spatial_access_method/img_24.png)
+
+##### ⓒ 세번째 방법
+위의 방식들은 Node로 나누느냐 중간 축을 정해서 나누느냐였는데
+이번에는 Node로 나누되 x축과 y축을 번갈아가면서 나누는 것이다.
+Node의 x 축 값만 확인하여 중간값을 선정하여 나누고, y축만 확인하여 중간값을 선정하여
+나누는 식으로 재귀적으로 나누어서 트리로 형성하는 방식이다.
+
+아래는 그림과 트리 예시이다.
+
+![img_4.png](/assets/blog/database/spacial_database/spatial_access_method/img_25.png)
+
+
+
+
+
 > 추가 업데이트 및 검증 예정
 {: .prompt-tip }
 
