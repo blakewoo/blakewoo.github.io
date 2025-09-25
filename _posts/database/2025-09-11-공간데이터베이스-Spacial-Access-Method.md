@@ -392,8 +392,24 @@ Node의 x 축 값만 확인하여 중간값을 선정하여 나누고, y축만 �
 ![img_4.png](/assets/blog/database/spacial_database/spatial_access_method/img_25.png)
 
 
+### 2) Data-Driven Structure
+#### a. R-tree
+위에서 설명했던 방식의 경우에는 데이터가 위치하는 전체 배경을 나누어서 인덱싱한 반면, Data-driven structure 타입인 
+R-tree는 데이터를 기준으로 기준 MBB를 설정하여 해당 MBB를 기준으로 인덱싱하는 것이다. 이러한 R-tree는 Oracle에서 공간 데이터를
+다룰때 기본적으로 제공하는 방식이다.
 
+메인 아이디어는 다음과 같은데, 인덱스에 해당하는 부분은 MBB로 지정하여 구성한다. 전체 공간을 나누어서 저장하기 않기 때문에
+각 인덱스와 연결된 페이지는 50% 이상의 활용률을 보장하고 삽입이나 분할 알고리즘 역시 쉽다.
 
+아래의 그림을 보자. polygon A~J의 MBB이다.
+
+![img.png](/assets/blog/database/spacial_database/spatial_access_method/img_26.png)
+
+인덱싱간에 왼쪽 위부터 아래로 가면서 Polygon들을 묶고 묶은 크기만큼 mbb로 잡는다. p1은 A,B,C를 묶은 MBB
+p2는 D,E를 묶은 MBB, p3는 F,G,H를 묶은 MBB, P4는 H,I,J를 묶은 MBB이고, 이를 또 절반으로 나누어 MBB를 잡는다.
+위 그림을 트리로 나타내면 아래와 같다.
+
+![img_1.png](/assets/blog/database/spacial_database/spatial_access_method/img_27.png)
 
 > 추가 업데이트 및 검증 예정
 {: .prompt-tip }
