@@ -411,6 +411,36 @@ p2는 D,E를 묶은 MBB, p3는 F,G,H를 묶은 MBB, P4는 H,I,J를 묶은 MBB이
 
 ![img_1.png](/assets/blog/database/spacial_database/spatial_access_method/img_27.png)
 
+각 리프노드는 각각의 Object에 대한 mbb로 이루어져있으며 x에 대해 low,high 값과, y값에 대한 low, high 값을 가지고 있다.      
+리프노드의 상위 노드들 역시 mbb로 이루어져있기 때문에 x에 대해 low,high 값과, y값에 대한 low, high 값을 가지고 있다.
+
+##### ⓐ Search
+빌드한 index에서 아래와 같이 투명 빨간 사각형 범위에 overlap 되는 mbb에 대한 search를 한다고 해보자.
+
+![img.png](/assets/blog/database/spacial_database/spatial_access_method/img_28.png)
+
+위 그림에서 탐색의 경로는 아래와 같다.
+
+![img_1.png](/assets/blog/database/spacial_database/spatial_access_method/img_29.png)
+
+기본적으로 p5와 overlap되지 않으니 해당 경로는 탐색에서 배제된다. 따라서 P6를 따라 내려가게되고,
+P3와 P4와 겹치는지 확인하게 되는데, 두 MBB와 겹치기 때문에 모든 경로를 확인해야한다.    
+따라서 H,I,J,F,G를 모두 확인하게 되고 각각의 MBB와 overlap을 확인하여 최종적으로 G,H를 반환한다.   
+(물론 MBB에 대한 연산이니 이후에 실제 overlap하는지에 대한 검증은 거칠 것이다)
+
+##### ⓑ Insert
+원래 Index에서 아래와 같이 K와 L이 추가되었다고 해보자.
+
+![img_2.png](/assets/blog/database/spacial_database/spatial_access_method/img_30.png)
+
+한 노드당 4개씩 담을 수 있으니 분할이 필요하다. 따라서 아래와 같이 분할 할 수 있다.
+
+![img_3.png](/assets/blog/database/spacial_database/spatial_access_method/img_31.png)
+
+위와 같이 분할 됨에 따라 트리 역시 아래와 같이 변경 된다.
+
+![img_4.png](/assets/blog/database/spacial_database/spatial_access_method/img_32.png)
+
 > 추가 업데이트 및 검증 예정
 {: .prompt-tip }
 
