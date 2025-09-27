@@ -441,6 +441,50 @@ P3와 P4와 겹치는지 확인하게 되는데, 두 MBB와 겹치기 때문에 
 
 ![img_4.png](/assets/blog/database/spacial_database/spatial_access_method/img_32.png)
 
+만약, 상위 트리 노드에서 개수가 4개를 초과한다면 분할하여 상위 노드가 하나 더 생긴다.   
+아래의 예시를 보자.
+
+![img.png](/assets/blog/database/spacial_database/spatial_access_method/img_33.png)
+
+위와 같은 그림에서는 아래와 같은 TREE가 나온다.
+
+![img_1.png](/assets/blog/database/spacial_database/spatial_access_method/img_34.png)
+
+이 경우 아래와 같이 L가 추가된다면
+
+![img_2.png](/assets/blog/database/spacial_database/spatial_access_method/img_35.png)
+
+아래와 같이 파티션이 분할되는데
+
+![img_3.png](/assets/blog/database/spacial_database/spatial_access_method/img_36.png)
+
+이 경우 P1~P4까지로 노드가 꽉 찼으므로 상위 노드를 만들어 해당 노드를 아래와 같이 분할한다.
+
+![img_4.png](/assets/blog/database/spacial_database/spatial_access_method/img_37.png)
+
+###### ※ 이미 만들어진 파티션에서 벗어난 위치에 Polygon이 추가된다면?
+이미 만들어진 파티션이 가장 적게 확장되는 것을 골라서 파티션의 MBR을 확장한 뒤 해당 Polygon을 추가한다.
+
+##### ⓒ Split
+Index 빌드간 어떻게 파티션을 나누는지, 혹은 Insertion 간에 노드 안에 MBB 개수 제한을 초과할시
+어떤 기준으로 나누는지에 대한 내용이다.
+
+그냥 생각해보면 4가지 방식이 있다.
+
+1. 단순 선택    
+   X든 Y든 일정 방향에서 시작해서 순차적으로 검색하여 해당 MBR 안의 전체 POLYGON 개수의 절반 이상을 만나면
+   만난 순서대로 단순히 묶는다.
+
+2. 선형 분할    
+   먼저 두 개의 seed(시작 그룹)를 빠르게 고르는 규칙(예: 각 축에서 가장 멀리 떨어진 경계들을 찾아 seed로 잡음)로 시작하고,
+   남은 엔트리들을 “해당 그룹의 MBR이 가장 덜 늘어나는 쪽”으로 하나씩 할당한다.
+
+3. 이차 분할    
+   모든 쌍을 검사해서 “같이 있으면 가장 낭비(죽은공간)를 만드는 두 엔트리”를 서로 다른 그룹의 초깃값(seed)으로 선택한다.
+
+4. 모든 분할 탐색    
+   말 그대로 모든 경우의 분할의 탐색 수를 탐색하여 전체 면적 합·겹침을 최소화하는 조합을 찾아서 선택한다.
+
 > 추가 업데이트 및 검증 예정
 {: .prompt-tip }
 
