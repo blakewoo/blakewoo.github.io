@@ -428,7 +428,7 @@ P3와 P4와 겹치는지 확인하게 되는데, 두 MBB와 겹치기 때문에 
 따라서 H,I,J,F,G를 모두 확인하게 되고 각각의 MBB와 overlap을 확인하여 최종적으로 G,H를 반환한다.   
 (물론 MBB에 대한 연산이니 이후에 실제 overlap하는지에 대한 검증은 거칠 것이다)
 
-##### ⓑ Insert
+##### ⓑ Insertion
 원래 Index에서 아래와 같이 K와 L이 추가되었다고 해보자.
 
 ![img_2.png](/assets/blog/database/spacial_database/spatial_access_method/img_30.png)
@@ -484,6 +484,15 @@ Index 빌드간 어떻게 파티션을 나누는지, 혹은 Insertion 간에 노
 
 4. 모든 분할 탐색    
    말 그대로 모든 경우의 분할의 탐색 수를 탐색하여 전체 면적 합·겹침을 최소화하는 조합을 찾아서 선택한다.
+
+##### ⓒ Deletion
+특정 Polygon E을 지우기 위해서는 일단 어떤 Leafnode가 대상을 갖고 있는지 찾는다.   
+그리고 해당 노드에서 E를 지우는데 만약에 E를 지움으로써 해당 Leafnode의 원소가 하나도 없게 된다면   
+대상 leafnode와 대상 leafnode의 부모 node를 지워버린다. 
+
+만약 삭제 작업으로 인해 부모가 없는 leafnode가 생겼다면 해당 노드들은 다시 삽입 연산을 통하여
+트리에 다시 삽입한다.
+
 
 > 추가 업데이트 및 검증 예정
 {: .prompt-tip }
