@@ -492,6 +492,45 @@ Index 빌드간 어떻게 파티션을 나누는지, 혹은 Insertion 간에 노
 대상 leafnode와 대상 leafnode의 부모 node를 지워버리고 만약 삭제 작업으로 인해 부모가 없는 leafnode가 생겼다면 해당 노드들은 다시 삽입 연산을 통하여
 트리에 다시 삽입한다.
 
+#### b. R+ -tree
+이름에서 알겠지만 R-tree의 파생형이다. 아예 overlap을 허용하지 않는 것으로 overlap이 일어날 경우 아예 split해서 새로운 MBB를 만든다.
+이러한 R+ 트리의 경우 느려서 사용되지 않는다.
+
+#### c. R* -tree
+이름에서 알겠지만 이 역시 R-tree의 파생형이다.    
+삽입시에 MBB의 overlap 증가를 최소화하는 것을 먼저로 두고, 겹침 증가가 같다면 면적 증가를 비교하여 선택한다.
+삽입 처리 이후 overflow 발생시에 바로 split 하지 않고 강제 재삽입(Forced Reinsert)을 진행하게 된다.
+
+강제 재삽입이란 일부 엔트리를 골라서 부모레벨로 재삽입하여 MBB를 조정하는 방식이다. 만약 재 삽입 이후에도 넘치면 그때는 split을 하게 된다.   
+아래의 예시를 보자.
+
+![img.png](/assets/blog/database/spacial_database/spatial_access_method/img_38.png)
+
+위와 같이 나누어진 MBB가 있다고 해보자. 아래와 같이 초록색의 새로운 polygon이 추가되었다.
+
+![img_1.png](/assets/blog/database/spacial_database/spatial_access_method/img_39.png)
+
+그러면 아래의 R-tree방식으로 split하는게 아니라.
+
+![img_2.png](/assets/blog/database/spacial_database/spatial_access_method/img_40.png)
+
+아래와 같이 몇 개의 Polygon을 임시로 빼서(R* 논문에서는 30%를 제시) MBB를 재조정 한 뒤 재삽입하는 것이다.
+
+![img_3.png](/assets/blog/database/spacial_database/spatial_access_method/img_41.png)
+
+이후에도 Overflow가 일어나면 split을 하게 되는데, 이때도 그냥 split하는게 아니다.   
+아래와 같은 상황에서 split한다고 할때
+
+![img_4.png](/assets/blog/database/spacial_database/spatial_access_method/img_42.png)
+
+아래와 같이 overlap 되는 축이 아닌
+
+![img_5.png](/assets/blog/database/spacial_database/spatial_access_method/img_43.png)
+
+overlap이 최대한 덜되는 축으로 split을 하게된다.
+
+![img_6.png](/assets/blog/database/spacial_database/spatial_access_method/img_44.png)
+
 
 > 추가 업데이트 예정
 {: .prompt-tip }
