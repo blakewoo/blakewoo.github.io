@@ -45,7 +45,145 @@ blockchain 기술의 모태가 되었다. 사이퍼펑크(사이버 펑크가 �
 때문에 만약에 커뮤니티에서 운용되는 코어가 shutdown되더라도 한번 접속한 다른 코어의 주소를 기억하고 있기 때문에
 운용간에는 문제가 없으며, 전파된 결제 내역은 코어에 코어를 통해 전파되어 전체 네트워크로 전파된다.
 
-### 2) 거래와 채굴
+### 2) 블록 구조
+비트 코인은 블록체인이라는 말 답게 블록의 체인으로 이루어져있다. 크게보면 아래와 같은 구조인 것이다.
+
+![img.png](assets/blog/blockchain/bitcoin/img.png)
+
+해당 블록의 구조는 아래와 같다.
+
+#### a. 블록
+<table>
+    <tr>
+        <td>필드</td>
+        <td>설명</td>
+        <td>크기</td>
+    </tr>
+    <tr>
+        <td>Magic no</td>
+        <td>항상 0xD9B4BEF9</td>
+        <td>4 bytes </td>
+    </tr>
+    <tr>
+        <td>Blocksize</td>
+        <td>블록 끝까지 이어지는 바이트 수</td>
+        <td>4 bytes </td>
+    </tr>
+    <tr>
+        <td>Blockheader</td>
+        <td>6개 항목으로 구성되어있음(아래 내용 참고)</td>
+        <td>80 bytes </td>
+    </tr>
+    <tr>
+        <td>Transaction counter</td>
+        <td>양의 정수 VI = VarInt</td>
+        <td>1 - 9 bytes </td>
+    </tr>
+    <tr>
+        <td>transactions</td>
+        <td>the (non empty) list of transactions</td>
+        <td>비어있지 않은 거래 목록</td>
+    </tr>
+</table>
+
+#### b. 블록 헤더
+
+<table>
+    <tr>
+        <td>필드</td>
+        <td>목적</td>
+        <td>업데이트 되는 시기</td>
+        <td>크기 (Bytes) </td>
+    </tr>
+    <tr>
+        <td>Version</td>
+        <td>블록 버전 번호</td>
+        <td>소프트웨어를 업그레이드하면 새로운 버전이 지정된다</td>
+        <td>4 </td>
+    </tr>
+    <tr>
+        <td>hashPrevBlock</td>
+        <td>블록의 모든 거래를 기반으로 한 256비트 해시</td>
+        <td>새로운 블록이 추가될때</td>
+        <td>32 </td>
+    </tr>
+    <tr>
+        <td>hashMerkleRoot</td>
+        <td>블록의 모든 거래를 기반으로 한 256비트 해시</td>
+        <td>거래가 승인될시에</td>
+        <td>32 </td>
+    </tr>
+    <tr>
+        <td>Time</td>
+        <td>1970-01-01T00:00 UTC 부터 현재까지 지난 초(UTC Timestamp)</td>
+        <td>매초마다</td>
+        <td>4 </td>
+    </tr>
+    <tr>
+        <td>Bits</td>
+        <td>컴팩트 포맷의 현재 목표</td>
+        <td>난이도 조정시</td>
+        <td>4 </td>
+    </tr>
+    <tr>
+        <td>Nonce</td>
+        <td>32-bit로 된 0으로 시작하는 숫자</td>
+        <td>Hash 시도시마다 증가</td>
+        <td>4</td>
+    </tr>
+</table>
+
+#### c. 트랜잭션
+
+<table>
+    <tr>
+        <td>필드</td>
+        <td>설명</td>
+        <td>크기 </td>
+    </tr>
+    <tr>
+        <td>버전</td>
+        <td>현재는 1,  OP_CHECKSEQUENCEVERIFY를 사용하여 시간 잠금을 활성화하는 경우 2로 설정</td>
+        <td>4 bytes </td>
+    </tr>
+    <tr>
+        <td>Flag</td>
+        <td>존재하는 경우 항상 0001이며 증인 데이터가 있음을 나타낸다.</td>
+        <td>선택적 2 byte array </td>
+    </tr>
+    <tr>
+        <td>In-counter</td>
+        <td>양의 정수 VI = VarInt</td>
+        <td>1 - 9 bytes </td>
+    </tr>
+    <tr>
+        <td>list of inputs</td>
+        <td>첫 번째 거래의 첫 번째 입력은 "코인베이스"라고도 한다.</td>
+        <td>"in-counter"로 이루어진많은 입력 </td>
+    </tr>
+    <tr>
+        <td>Out-counter</td>
+        <td>양의 정수 VI = VarInt</td>
+        <td>1 - 9 bytes </td>
+    </tr>
+    <tr>
+        <td>list of outputs</td>
+        <td>첫 번째 거래의 출력은 블록에 대해 채굴된 비트코인을 사용한다.</td>
+        <td>"out-counter"로 이루어진많은 입력 </td>
+    </tr>
+    <tr>
+        <td>Witnesses</td>
+        <td>각 입력에 대해 1개씩 증인 목록이 있으며 위의 플래그가 누락된 경우 생략된다.</td>
+        <td>가변적임, Segregated_Witness 참조 </td>
+    </tr>
+    <tr>
+        <td>lock_time</td>
+        <td>	0이 아니고 시퀀스 번호가 < 0xFFFFFFFF인 경우: 트랜잭션이 최종일 때의 블록 높이 또는 타임스탬프</td>
+        <td>4 bytes</td>
+    </tr>
+</table>
+
+### 3) 거래와 채굴
 Transaction이라고 불리는 거래는 다음과 같다. A와 B가 있다고 할때 A가 B에게 3 BTC를 송금하고 싶다고 하자.   
 그러면 A는 이전 거래 블록의 해시값과 거래 내역, B의 공개키 해시를 포함해서 A의 비밀키로 암호화하여 연결된 코어에게 전파한다.
 이렇게 비밀키로 암호화하는 것을 전자서명이라고 하며 A의 공개키로 이를 복호화하여 확인가능하다.
@@ -67,7 +205,7 @@ Transaction이라고 불리는 거래는 다음과 같다. A와 B가 있다고 �
 이 과정에서 미확정 거래를 수집하는 기준이 수수료이다. 수수료가 큰 거래를 처리할 수록 채굴 간에 얻는 Bitcoin이 많기 때문에
 수수료가 높은 거래일 수록 더 빨리 확정된다.
 
-### 3) UTXO(Unspent Transaction Output)
+### 4) UTXO(Unspent Transaction Output)
 bitcoin은 코어들의 상호작용으로 인해 신뢰성이 유지된다. 그렇다면 비트코인의 거래와 잔고는 어떻게 유지되는 걸까?   
 답은 간단하다. 각 거래원장에 사용되지 않은 bitcoin 잔량을 포함하는 형태로 기재하는 것이다.    
 가령 A와 B가 있다고 할때 아래와 같이 송금했다고 하자 (A가 이미 100 BTC를 갖고 있다고 가정)
@@ -80,7 +218,7 @@ B의 계정에서 BTC가 생성되는 걸로 보면 된다.
 
 좀 살펴보면 DB에서 멱등성 있는 형태의 로그를 남기는 것과 비슷해 보인다.
 
-### 4) Orphan chain(Stale chain)
+### 5) Orphan chain(Stale chain)
 기본적으로 Bitcoin 네트워크는 내 결함성이 강하고 가용성이 높지만 Mesh 구조이기 때문에 Network가 split될수 있다.   
 그럴 경우 각 네트워크마다 확정되며 이후 네트워크가 연결될 경우 각 체인의 길이를 비교하여 짧은 체인(Orphan chain or Stale chain)이 버려지며 해당 체인에 들어있던
 거래들은 다시 미확정 거래로 돌아가게 된다.
@@ -114,3 +252,4 @@ B의 계정에서 BTC가 생성되는 걸로 보면 된다.
 - [위키백과 - SHA2](https://ko.wikipedia.org/wiki/SHA-2)
 - [위키백과 - 공개 키 암호 방식](https://ko.wikipedia.org/wiki/%EA%B3%B5%EA%B0%9C_%ED%82%A4_%EC%95%94%ED%98%B8_%EB%B0%A9%EC%8B%9D)
 - 비트코인이란 무엇인가, 레드스톤, 사토시 나카모토 지음, 고피디 번역 · 해설
+- [블록체인 ](https://en.bitcoin.it/wiki/Block#Block_structure)
