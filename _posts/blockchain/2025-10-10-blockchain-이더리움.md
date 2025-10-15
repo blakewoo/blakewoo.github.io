@@ -1,7 +1,7 @@
 ---
 title: Blockchain - Ethereum
 author: blakewoo
-date: 2025-10-13 21:30:00 +0900
+date: 2025-10-23 21:30:00 +0900
 categories: [Blockchain]
 tags: [Blockchain, Ethereum] 
 render_with_liquid: false
