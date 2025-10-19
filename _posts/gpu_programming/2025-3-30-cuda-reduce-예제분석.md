@@ -11,7 +11,19 @@ render_with_liquid: false
 이번 시간에는 수업중에 나온 Reduce 함수에 대한 예제를 분석해보겠다.   
 보다보면 알겠지만 번호가 큰 함수일 수록 효율적이고 빠른 함수이다.
 
-## 1. reduce0 예제 분석
+## 1. Reduction의 개요
+아래의 예시에서는 Reduce라고 되어있지만 사실 같은 것이이다. 동사형이냐 명사형이냐의 차이이다.   
+이 Reduction은 덧셈에도 쓸 수 있지만 많은 경우에 사용할 수 있는데, 그 예시는 아래와 같다.
+
+- 덧셈
+- 곱셈
+- 많은 값 중에 가장 큰 값
+- 많은 값 중에 가장 작은 값
+
+그외에도 몇가지 더 있다.   
+이번에 설명할 Reduction은 덧셈에 대한 예시이다.
+
+## 2. reduce0 예제 분석
 ```cuda
 // device 함수
 __global__ void reduce0(float* x, int m) {
@@ -41,7 +53,7 @@ reduce0 함수의 경우 절반씩 나눠가면서 전반부에 후반부 데이
 
 결과값은 d_A[0]에 남게 된다.
 
-## 2. reduce1 예제 분석
+## 3. reduce1 예제 분석
 ```cuda
 // device 함수
 __global__ void reduce1(float* x, int N) {
@@ -77,7 +89,7 @@ threads * blocks를 stride로 잡고, stride 기준으로 데이터를 갖고와
 
 위 함수에서 결과값은 d_A[0]에 저장된다.
 
-## 2. reduce2 예제 분석
+## 4. reduce2 예제 분석
 ```cuda
 // device 함수
 __global__ void reduce2(float *y, float *x, int N) {
@@ -127,7 +139,7 @@ shared_memory를 썼다는 점에서 reduce0와 reduce1 방식을 mix 했다고 
 위 함수 역시 d_A[0]에 결과값이 저장된다. 
 
 
-## 3. reduce3 예제 분석
+## 5. reduce3 예제 분석
 ```cuda
 // device 함수
 
@@ -175,7 +187,7 @@ pow2ceil 함수는 N 값보다 바로 다음 큰 2의 승수 값을 반환하는
 하지만 여기서 다른 점은 block의 개수를 SM의 배수로 잡는 다는 점이다.
 성능은 크게 차이가 없긴하다.
 
-## 4. reduce4 예제 분석
+## 6. reduce4 예제 분석
 #### 1) 코드
 일단은 Reduce4 함수에 대한 코드이다.
 
