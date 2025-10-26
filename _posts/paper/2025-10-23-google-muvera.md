@@ -1,5 +1,5 @@
 ---
-title: Google 논문 - MUVERA : Multi-Vector Retrieval via Fixed Dimensional Encodings 분석
+title: Google 논문 - MUVERA, Multi-Vector Retrieval via Fixed Dimensional Encodings 분석
 author: blakewoo
 date: 2025-10-25 23:30:00 +0900
 categories: [Paper]
@@ -10,9 +10,16 @@ use_math: true
 
 # Muvera
 ## 1. 문제 정의 
+Neural embedding은 클러스터링 및 분류와 같은 많은 작업 중에서 정보 검색의 핵심 도구가 되었다. 이는 어떤 문서를 임베딩 벡터화 했을 때    
+다수의 문서 중에서 가장 거리가 가까운 값일 수록 해당 문서에 가깝다는 것이 알려졌기 때문이다. 이러한 원리를 이용하여 벡터 데이터를 Search하는
+방법들이 많이 등장했고 발달하고 있다.
+
 기존의 Vector Search에서 말하는 Vector는 단일 벡터를 다루는 일이 많았다.   
 여기서 말하는 단일 벡터란, 한 개의 Document를 한 개의 임베딩 벡터로 만드는 것을 말한다.   
-Document 값이 얼마나 크든 간에 내용이 어떻든 상관없이 한 개의 벡터로 만들어버리므로 의미 손실이 일어난다.
+Document 값이 얼마나 크든 간에 내용이 어떻든 상관없이 한 개의 벡터로 만들어버리므로 의미 손실이 일어난다.   
+가령 컴퓨터의 역사에 대해서 논하는 Document가 있다고 해보자, 컴퓨터의 역사를 서술했지만 하드웨어 위주로 조명하여 서술한 Document라고 할때
+하드웨어에 대한 내용은 소실되고 컴퓨터의 역사라는 것만 남는 식이다.   
+사용자는 하드웨어 관점의 컴퓨터 역사를 알고 싶다고 할 때 위와 같이 소실된 형태의 벡터가 Document 나타낸다면 찾아내지 못할 가능성이 있다.
 
 이 때문에 Multi-vertor 기법이 나왔는데 이는 한 개의 Document를 토큰, 문장, 섹션등 여러 벡터로 표현해서 쿼리의 특정 부분과 문서의 특정 부분을  
 직접 매칭 할 수 있기 때문에 정밀도가 올라간다. 이 기법 중에 가장 대표적인 것이 바로 ColBERT이다.
@@ -22,7 +29,7 @@ Document 값이 얼마나 크든 간에 내용이 어떻든 상관없이 한 개
 때문에 쿼리 역시 여러 임베딩으로 만들어 이를 각기 계산해주어야하기 때문이다. (이 연산을 MaxSim 혹은 Chamfer Similarity라고 한다)   
 또한 기존의 1개의 Document에서 1개의 임베딩 벡터가 나왔던것과 달리 다수의 임베딩 벡터가 생성하기 때문에 용량도 커지게 된다.
 
-이 Chamfer Similarity 방식은 이전에 전통적인 Single Vector Search 방식을 사용하지 못한다.
+특히 이 Chamfer Similarity 방식은 이전에 전통적인 Single Vector Search 방식을 사용하지 못한다.
 따라서 이를 문제로 본 google research 팀은 솔루션으로 Muvera를 제시했다.
 MUVERA는 이 멀티벡터 유사도(Chamfer / MaxSim)를 단일 벡터(inner-product) 검색으로 근사하여
 기존의 고속 MIPS(Maximum inner product search) 인덱스(예: DiskANN)를 그대로 쓸 수 있게 하는 방식이다.
@@ -49,10 +56,10 @@ $$ \max_{p \in P} \langle q_1, p \rangle, \max_{p \in P} \langle q_2, p \rangle,
 가장 값이 높은 것을 찾으면 될 것이다.
 
 ## 2. 핵심 아이디어
-각 쿼리/문서의 멀티 벡터를 단일 고정 차원 벡터로 변환하여 이 두 벡터의 내적이 Chamfer similarity를 근사하도록 설계하는 것이다.
+각 쿼리/문서의 멀티 벡터를 고정 차원 싱글 벡터로 변환하여 이 두 벡터의 내적이 Chamfer similarity를 근사하도록 설계하는 것이다.   
 
 ### 1) 공간 분할
-SimHash로 latent space를 B개 cluster로 나눈다.
+한 개의 문서에 다수의 임베딩 벡터가 있다. 이를 SimHash로 latent space를 B개 cluster로 나눈다.
 이렇게 나눌 경우 가까운 포인트가 같은 cluster에 들어갈 확률이 높다.
 SimHash로 나눌 경우 B는 아래의 값이 된다.
 
@@ -80,6 +87,7 @@ XOR 한 값의 1이 5개이므로 해밍거리는 5이다.
 
 > ※ 추가 업데이트 및 검증 예정
 {: .prompt-tip }
+
 ### 2) 블록 구성
 각 cluster k에 대해 쿼리 블록은 그 cluster에 속한 쿼리 벡터들의 합, 문서 블록은 그 cluster가 속한
 문서 벡터들의 평균으로 둔다. 이렇게 각 Cluster마다 d차원의 블록을 만든다.
@@ -95,8 +103,9 @@ XOR 한 값의 1이 5개이므로 해밍거리는 5이다.
 
 > ※ 추가 업데이트 및 검증 예정
 {: .prompt-tip }
+
 ## 3. 실험 결과
-FDE 검색은 기존 SV 히어리스틱(PLAID 기반)보다 후보 수를 훨씬 적게 조회하면서 동일하거나 더 나은 Recall을 달성함(예: 같은 recall을 위해 2–5× 적은 후보).
+FDE 검색은 기존 Single Vector 휴리스틱(PLAID 기반)보다 후보 수를 훨씬 적게 조회하면서 동일하거나 더 나은 Recall을 달성함(예: 같은 recall을 위해 2–5× 적은 후보).
 End-to-end(BEIR 데이터셋들 기준): 평균 Recall 약 +10%, 평균 Latency 약 −90%(대부분 데이터셋에서 빠름)를 보고.
 MS MARCO에서는 같은 수준(또는 약간 못할 수 있음)으로 나왔음(PLAID가 MS MARCO에 특화 튜닝된 탓일 가능성).
 PQ(예: PQ-256-8)를 쓰면 메모리 32× 감소, QPS는 유지 혹은 개선되며 recall 손실은 거의 없음.
