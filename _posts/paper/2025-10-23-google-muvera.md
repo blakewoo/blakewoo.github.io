@@ -138,15 +138,90 @@ $$ \psi(x) = S x = \begin{bmatrix} +1 & -1 \end{bmatrix} \begin{bmatrix} x_1 \\ 
 
 위 계산 결과 $ [x_{1}, x_{2}] $ 에서 $  [x_{1} - x_{2}] $ 로 1차원으로 변환되었다. 이를 투영이라고 한다.
 
-## 3. 실험 결과
-논문에서는 해당 실험에 대해서 [DiskANN](https://blakewoo.github.io/posts/microsoft-diskann/) 으로 검색을 구현하고, ANN 뽑은 후보군에 대해서 Reranking을 진행했다고한다.
-FDE 검색은 기존 Single Vector 휴리스틱(PLAID 기반)보다 후보 수를 훨씬 적게 조회하면서 동일하거나 더 나은 Recall을 달성했으며(예: 같은 recall을 위해 2–5× 적은 후보).
-End-to-end(BEIR 데이터셋들 기준): 평균 Recall 약 +10%, 평균 Latency 약 −90%(대부분 데이터셋에서 빠름) 였다.
-MS MARCO에서는 같은 수준(또는 약간 못할 수 있음)으로 나왔으며(PLAID가 MS MARCO에 특화 튜닝된 탓일 가능성).
-PQ(예: PQ-256-8)를 쓰면 메모리 32× 감소, QPS는 유지 혹은 개선되며 recall 손실은 거의 없었다.
+## 3. 실험 및 평가
+### 1) 데이터 셋
+성능 실험을 위해 사용된 데이터 셋은 아래와 같다.
 
-> ※ 추가 업데이트 및 검증 예정
-{: .prompt-tip }
+<table>
+    <tr>
+        <td></td>
+        <td>MS MARCO</td>
+        <td>HotpotQA</td>
+        <td>NQ</td>
+        <td>Quora</td>
+        <td>SciDocs</td>
+        <td>ArguAna</td>
+    </tr>
+    <tr>
+        <td>쿼리개수</td>
+        <td>6,980</td>
+        <td>7,405</td>
+        <td>3,452</td>
+        <td>10,000</td>
+        <td>1,000</td>
+        <td>1,406</td>
+    </tr>
+    <tr>
+        <td>문서개수</td>
+        <td>8.84M</td>
+        <td>5.23M</td>
+        <td>2,68M</td>
+        <td>523K</td>
+        <td>25.6K</td>
+        <td>8.6K</td>
+    </tr>
+    <tr>
+        <td>문서당 평균 임베딩 개수</td>
+        <td>78.8</td>
+        <td>68.65</td>
+        <td>100.3</td>
+        <td>18.28</td>
+        <td>165.05</td>
+        <td>154.72</td>
+    </tr>
+</table>
+
+### 2) Offline Evaluation of FDE Quality
+FDEs(Fixed Dimensional Encodings)가 Chamfer Similarity를 얼마나 잘 근사하는지, 그리고 실제 검색 성능에 어떤 영향을 미치는지 재랭킹이나
+ANNS 알고리즘 적용 없이 순수하게 FDE 자체의 품질만을 평가하며 FDEs가 이상적인 상황(예: 완전 탐색)에서 얼마나 정확한 유사도를 제공하는지 측정한 것이다.
+
+반복 횟수와 simHash 비트수와 내부 투영 차원의 값을 아래와 같이 두고 격자 탐색(Grid Search)를 진행했다.
+
+$$ R_{reps} = {1,5,10,15,20} $$
+$$ k_{sim} = {2,3,4,5,6} $$
+$$ d_{proj} = {8,16,32,64} $$
+
+Recall@N (예: Recall@100, Recall@1k, Recall@10k)을 사용하여 측정했으며
+이는 실제 Chamfer Similarity에 따라 가장 유사한 문서 N개를 PDE 내적 순으로 N개 후보 안에서 얼마나 찾아내는지를 나타낸다.
+
+![img.png](/assets/blog/paper/muvera/img.png)
+
+위 그래프를 볼 때 기본적으로 FDE의 차원이 증가할 수록 재현율이 꾸준히 향상되는 경향을 보이며 simHash 비트수와 투영차원 수는 반복 값에 비해서 품질 향상에 있어서 비교적
+덜 중요한 역할을 한다. 또한
+(Rreps, ksim, dproj) ∈ {(20, 3, 8), (20, 4, 8)(20, 5, 8), (20, 5, 16)}는 각각의 차원(즉, Rreps · 2ksim · dproj)에 대해
+모두 파레토 최적(Pareto optimal)이었다.
+
+클러스터링 방식을 simHash가 아닌 K-means로 클러스터링시에 파레토 경계에서 종종 품질 향상을 제공하지 않으며 종종 더 나쁘게 나오는 경우도 있다.
+또한 k-means를 사용하는 경우, FDE를 구성하는 과정이 데이터의 분포에 의존하게 되어, 데이터 비의존적(data-oblivious)인 SimHash의 장점을 잃게 된다는 것을 알 수 있다.
+
+### 3) Single Vector Heuristic vs. FDE retrieva
+멀티 벡터 검색을 위한 대체제로서 FDE의 품질을 이전에 설명한 SV 휴리스틱과 비교한다. 이 SV 휴리스틱은 PLAID의 기반이다.   
+쿼리의 임베딩 벡터에 대해 문서의 토큰 임베딩 벡터의 집합에서 가장 가까운 것부터 K개까지를 찾아내고, 동일한 문서를 가리키고 있다면 중복을 제거하여
+K개까지 맞추는 과정을 거친다. 이 방식을 SV-DEDUP이라고 정의할 때 FDE 방식과 SV, SV-DEDUP과의 재현율에 대한 비교는 아래와 같다.
+
+![img.png](/assets/blog/paper/muvera/img.png)
+
+### 4) Online Implementation and End-to-End Evaluation
+논문에서는 해당 실험에 대해서 [DiskANN](https://blakewoo.github.io/posts/microsoft-diskann/) 으로 검색을 구현하고, ANN 뽑은 후보군에 대해서 Reranking을 진행했다고한다.
+DiskANN을 사용할때 유일하게 튜닝한 인자는 W값이라고 말했으며, 이는 빔 서치간 한번에 서치하는 정도이다.
+
+메모리 사용량을 줄이기 위해 연속된 8개 차원 세트를 256개 중심 중 하나로 압축하여 Product Qunatization을 했으며 QPS 실험은 176개의 하이퍼 스레드를 지원하는 가상머신에서 구동하여
+테스트를 했고, 대기 시간 실험은 단일 스레드를 사용했다고 한다.
+
+각 데이터셋에 대해 PLAID와 Muvera의 재현율과 지연시간에 대한 그래프는 아래와 같다.
+
+![img_1.png](/assets/blog/paper/muvera/img_2.png)
+
 
 # 참고문헌
 - Laxman Dhulipala, , Majid Hadian, Rajesh Jayaram, Jason Lee, and Vahab Mirrokni. "MUVERA: Multi-Vector Retrieval via Fixed Dimensional Encodings." (2024).
