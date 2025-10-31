@@ -96,11 +96,11 @@ XOR 한 값의 1이 5개이므로 해밍거리는 5이다.
 ### 2) 블록 구성
 각 cluster k에 대해 쿼리 블록은 그 cluster 에 속한 쿼리 벡터들의 합    
 
-$$ q^{(k)} &= \sum_{q \in Q, \phi (q) = k} q $$
+$$ q^{(k)} = \sum_{q \in Q, \phi (q) = k} q $$
 
 문서 블록은 그 cluster가 속한 문서 벡터들의 평균으로 둔다.    
 
-$$ p^{(k)} &= \frac{1}{|P \cap \phi^{-1}(k)|} \sum_{p \in P, \phi(p)=k} p $$
+$$ p^{(k)} = \frac{1}{\left|P \cap \phi^{-1}(k)\right|} \sum_{p \in P, \phi(p)=k} p $$
 
 이렇게 각 Cluster마다 d차원의 블록을 만든다.      
 이 BLOCK들을 다 붙여서 임시 FDE를 만든다.   
