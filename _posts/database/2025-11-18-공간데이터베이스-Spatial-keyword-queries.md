@@ -99,6 +99,126 @@ Top-k 결과에 특정 객체가 포함되지 않은 이유를 설명하고, k�
 ### 5) Spatio-Textual Similarity Query
 질의 영역, 키워드 집합, 텍스트 및 공간 유사도 임계값이 주어지며, 공간 유사도는 질의 영역과 결과 영역의 겹침(overlap)을 기반으로 측정된다
 
+## 5. 텍스트 적합성(Text Representation)
+Boolean range query에서 사용하는 텍스트 적합성은 기본적으로 Bag of Words를 변경한 IF-IDF 방식을 이용한다.   
+어떤 방식인지는 예를 들어 설명하겠다.   
+
+아래와 같은 Documents 3개가 있다. 각 Document 는 아래 단어의 집합이다.   
+
+D1 : apple, banana, chicken
+D2 : apple, cheese, chicken
+D3 : milk, cheese, ice
+
+D1~D3 의 단어의 합집합을 만든다.
+
+- apple, banana, chicken, cheese, milk, ice
+
+이는 아래와 같이 표현한다. 각 단어에 대해서 Document에 포함된 숫자로 나타내고 없으면 0으로 표현하는 것이다.
+
+<table>
+    <tr>
+        <td></td>
+        <td>apple</td>
+        <td>banana</td>
+        <td>chicken</td>
+        <td>cheese</td>
+        <td>milk</td>
+        <td>ice</td>
+    </tr>
+    <tr>
+        <td>D1</td>
+        <td>1</td>
+        <td>1</td>
+        <td>1</td>
+        <td>0</td>
+        <td>0</td>
+        <td>0</td>
+    </tr>
+    <tr>
+        <td>D2</td>
+        <td>1</td>
+        <td>0</td>
+        <td>1</td>
+        <td>1</td>
+        <td>0</td>
+        <td>0</td>
+    </tr>
+    <tr>
+        <td>D3</td>
+        <td>0</td>
+        <td>0</td>
+        <td>0</td>
+        <td>1</td>
+        <td>1</td>
+        <td>1</td>
+    </tr>
+</table>
+
+위와 같이 변경하면 한 개의 Document는 자연수로 된 6차원의 벡터로 표현 가능하다.   
+하지만 0과 1로만 표현하면 어떤 값이 Document를 구분하는데 더 도움이 되는지 알수가 없으므로 
+TF-IDF(Term Frequency-Inverse Document Frequency)를 이용하여 각 값들을 가중치로 변경하게 된다.   
+해당 수식은 아래와 같다.
+
+$$ w_{j,i} = tf_{j,i} \times idf_{j} $$ 
+
+여기서 $tf_{j,i}$는 document i에서 word j가 몇번 등장하는지이고 $idf_{j}$ 는 아래와 같은 식으로 구한다.
+
+$$ idf_{j} = log_{2}\frac{\left| D \right|}{\left| \left\{ document\in D | j\in document \right\} \right|} $$
+
+분자인 $ \left| D \right| $는 전체 document 총 개수이고 분모인 \left| \left\{ document\in D | j\in document \right\} \right| 는   
+word j가 있는 document의 개수이다.
+
+"apple" 에 대해서 TF-IDF를 구해보자면 아래와 같다.
+
+$$ log_{2}\frac{\left| D \right|}{\left| \left\{ document\in D | j\in document \right\} \right|} = log_{2}\frac{3}{2} = 0.584 $$
+
+"milk"에 대해서 TF-IDF를 구해보자면 아래와 같다.
+
+$$ log_{2}\frac{\left| D \right|}{\left| \left\{ document\in D | j\in document \right\} \right|} = log_{2}\frac{3}{1} = 1.584 $$
+
+따라서 전체 표를 TF-IDF로 바꾸면 아래와 같다.
+
+<table>
+    <tr>
+        <td></td>
+        <td>apple</td>
+        <td>banana</td>
+        <td>chicken</td>
+        <td>cheese</td>
+        <td>milk</td>
+        <td>ice</td>
+    </tr>
+    <tr>
+        <td>D1</td>
+        <td>0.584</td>
+        <td>1.584</td>
+        <td>0.584</td>
+        <td>0</td>
+        <td>0</td>
+        <td>0</td>
+    </tr>
+    <tr>
+        <td>D2</td>
+        <td>0.584</td>
+        <td>0</td>
+        <td>0.584</td>
+        <td>0.584</td>
+        <td>0</td>
+        <td>0</td>
+    </tr>
+    <tr>
+        <td>D3</td>
+        <td>0</td>
+        <td>0</td>
+        <td>0</td>
+        <td>0.584</td>
+        <td>1.584</td>
+        <td>1.584</td>
+    </tr>
+</table>
+
+이렇게 변환한 벡터를 이용하여 COSINE 유사도를 이용하여 단어 적합성을 검사하면 된다.
+
 > ※ 추가 업데이트 및 검증 예정
 {: .prompt-tip }
 
