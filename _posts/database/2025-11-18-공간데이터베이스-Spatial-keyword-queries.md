@@ -219,6 +219,83 @@ $$ log_{2}\frac{\left| D \right|}{\left| \left\{ document\in D | j\in document \
 
 이렇게 변환한 벡터를 이용하여 COSINE 유사도를 이용하여 단어 적합성을 검사하면 된다.
 
+## 6. Indexing 방식
+공간 정보와 keyword 정보를 같이 넣어서 Indexing을 미리해두면 빠르게 엑세스할 수 있다.   
+아래는 이러한 Indexing 방법들에 대한 설명이다.
+
+### 1) R*-IF (R*-tree - Inverted File) Index
+기존의 R-Tree 방식을 사용하되, R-tree의 Leaf-node에 포함된 Object 들에 Inverted File 형태로 keyword에 대한 정보를 포함하는 것이다.
+
+![img.png](/assets/blog/database/spacial_database/spatial_keyword_queries/img.png)
+
+해당 Indexing 방법은 Spatial한 query를 먼저 진행하여 거리 기반으로 객체를 갖고온 후 keyword를 확인하면 된다.     
+해당 Indexing 기법으로는 Boolean top-k나 Boolean Range query만 수행할 수 있다.
+
+### 2) IF-R* (Inverted File - R*-tree) Index
+R*-IF는 R 트리에 IF를 달았다면 IF-R*는 반대이다. Keyword에 대해 찾으면 그 keyword에 R-tree가 연결된 형태이다.
+
+![img_1.png](/assets/blog/database/spacial_database/spatial_keyword_queries/img_1.png)
+
+이 역시 Boolean top-k나 Boolean Range query만 수행할 수 있다.
+
+### 3) $IR^{2}$-Tree Index
+Keyword에 대해서 Bitmap으로 표현한다. 단어는 한 개의 bit에 대응되며 있으면 1, 없으면 0으로 Mapping된다.     
+각 Object는 해당 bitmap을 갖고 있으며, Object를 child로 갖는 부모 노드는 각 object의 bitmap을 Logical OR한 값을 bitmap을 갖는다.
+
+![img_2.png](/assets/blog/database/spacial_database/spatial_keyword_queries/img_2.png)
+
+만약 어떤 keyword에 대해서 query를 요청하고자 하면 대상 keyword들에 해당하는 값들을 1로 세팅하여 각 node의 bitmap과 and하여 query 값과
+동일한 값이 반환되는 node만 타고 내려가서 확인한다.
+그 과정에서 확인 대상의 Node는 우선순위 큐에 넣고 하나씩 빼며 검색하며 사용하여 우선 순위 대상은 MBR일 경우 Mindist, Object의 경우 Dist이다.
+
+이 Indexing 역시 Boolean top-k나 Boolean Range query만 수행할 수 있다.
+
+### 4) IR-Tree Index
+IR-Tree는 기본적으로 R 트리지만 모든 Node가 IVF를 갖고 있다. 
+이 IVF들은 기본적으로 어떤 단어를 어떤 Object가 몇개나 갖고 있는지에 대한 내용을 담고 있는데, 리프노드가 아니라 Inner node의 경우에는   
+하위 노드에서 가장 많은 빈도인 값만을 반영하여 두 개씩 모은다.
+
+그와 별개로 Global하게 각 Object와 Inner node의 MBR에 대해서 Dist와 MINDIST를 구하여두고, 각 값에 대해서 $D_{ST}, MIND_{ST}$ 값 두 개를 구한다.   
+해당 값을 구하는 식은 아래와 같다.
+
+$$ D_{ST}(Q,O) = \alpha \frac{D_{\epsilon}(Q.loc,O.loc)}{maxD} + (1-\alpha)(1-\frac{P(Q.keywords|O.doc)}{maxP}) $$
+
+위 값은 앞부분은 Query와 대상 Object의 거리를 정규화한것이고, 뒤에는 Query의 키워드가 Object에 몇번이나 등장하는지를 산출하되    
+유사도는 클 수록 값이 높으므로 정규화한 값을 1에서 빼줌으로써 유사할 수록 작은 값이 반환되게 만들고 $\alpha$ 값으로 거리와 keyword의 비중을 정하는 방식이다.
+
+$$ MIND_{ST}(Q,N) = \alpha \frac{MIND_{\epsilon}(Q.loc,N.rectangle)}{maxD} + (1-\alpha)(1-\frac{P(Q.keywords|N.doc)}{maxP})  $$   
+
+위 값은 Query와 MBR 간의 MINDIST 거리를 정규화하고, MBR에서 Query의 Keyword의 등장 빈도를 산출하되    
+유사도는 클 수록 값이 높으므로  정규화한 값을 1에서 빼줌으로써 유사할 수록 작은 값이 반환되게 만들고  $\alpha$ 값으로 거리와 keyword의 비중을 정하는 방식이다.
+
+$$ maxP=\prod_{t\in Q.keywords}max_{O'\in D} \hat{p}(t|O'.doc) $$
+
+maxP값은 등장 빈도를 정규화할때 사용하는 값인데, 각 Object에서 가장 많이 등장하는 키워드의 확률을 모두 곱한 값이다.
+
+$$ \hat{p}(t|\theta _{O.doc}) = (1-\lambda)\frac{tf(t,O.doc)}{\left| O.doc \right|}+\lambda \frac{tf(t,Coll)}{\left| Coll \right|} $$
+
+위 값은 기본적으로 키워드 t가 Object에 등장할 확률을 추정할때 사용하는 것으로 단어 t가 해당 Object에서 직접 등장할 확률에 단어 t가 전체 Object에서 등장할 전체 비율을 더하되
+$\lambda$ 값으로 비중을 주는 것이다.
+
+$$ P(Q.keywords|N.doc) = \prod_{t\in Q.keywords}\hat{p}(t|\theta _{O.doc}) $$
+
+위 값은 객체 O의 문서에서 키워드 t가 나올 확률을 모두 곱한 것이다.
+
+위 식들을 기반으로 kNN Search는 아래와 같은 알고리즘으로 구동된다. 
+
+1. K 후보큐 KQ 초기화(K개의 크기)
+2. 우선 순위 큐(Q) 초기화
+3. Q에 루트 노드 삽입
+4. 큐가 비어있지 않다면 Q의 원소(E)를 하나 꺼내서 아래의 절차 수행   
+5. E가 Object일때 : 
+- 아직 더 가까운 후보가 남아있고 꺼낸 객체가 Q에서 첫번째 후보보다 멀면 E를 다시 큐에 넣는다
+- 아니라면 E를 K 후보 큐에 넣고, K 후보 큐가 꽉 찼으면 알고리즘 종료      
+6. E가 Leaf node라면 :      
+- E의 Object들을 모두 Q에 삽입 
+7. E가 InnerNode라면 :
+- E의 Node들을 모두 Q에 삽입
+   
+
 > ※ 추가 업데이트 및 검증 예정
 {: .prompt-tip }
 
