@@ -219,6 +219,21 @@ $$ log_{2}\frac{\left| D \right|}{\left| \left\{ document\in D | j\in document \
 
 이렇게 변환한 벡터를 이용하여 COSINE 유사도를 이용하여 단어 적합성을 검사하면 된다.
 
+### ※ Cosine 유사도
+Cosine 유사도는 아래의 식을 따른다.
+
+$$ Cosine Similarity = \frac{(a\cdot b)}{\left\| a \right\| \times \left\| b \right\|}$$
+
+여기서 $a\cdot b$ 은 벡터 a와 벡터 b의 내적이고 $\left\| a \right\|$ 는 a의 크기, $\left\| b \right\|$ 는 b의 크기이다.   
+만약 apple, milk, ice가 포함된 어떤 query Q와 D1의 TF-IDF 벡터의 코사인 유사도를 구하고 싶다면 아래와 같다.
+
+Q = {0.584,0,0,0,1.584,1.584}
+D1 = {0.584,1.584,0.584,0,0,0}
+
+$$ Q \cdot D1 = 0.341056 + 0 + 0 + 0 + 0 + 0 + 0$$   
+$$\left\| Q \right\| \times \left\| D1 \right\| = 2.315 + 1.786 = 4.1$$   
+$$\frac{(a\cdot b)}{\left\| a \right\| \times \left\| b \right\|} = \frac{0.341056}{4.1} = 0.083$$
+
 ## 6. Indexing 방식
 공간 정보와 keyword 정보를 같이 넣어서 Indexing을 미리해두면 빠르게 엑세스할 수 있다.   
 아래는 이러한 Indexing 방법들에 대한 설명이다.
@@ -288,12 +303,12 @@ $$ P(Q.keywords|N.doc) = \prod_{t\in Q.keywords}\hat{p}(t|\theta _{O.doc}) $$
 3. Q에 루트 노드 삽입
 4. 큐가 비어있지 않다면 Q의 원소(E)를 하나 꺼내서 아래의 절차 수행   
 5. E가 Object일때 : 
-- 아직 더 가까운 후보가 남아있고 꺼낸 객체가 Q에서 첫번째 후보보다 멀면 E를 다시 큐에 넣는다
-- 아니라면 E를 K 후보 큐에 넣고, K 후보 큐가 꽉 찼으면 알고리즘 종료      
+- 아직 더 가까운 후보가 남아있고 꺼낸 객체가 Q에서 첫번째 후보보다 멀면($D_{ST}$ > Queue.First().key) E의 $D_{ST}$를 키로 다시 큐에 넣는다
+- 아니라면 E를 KQ에 넣고, KQ가 꽉 찼으면 알고리즘 종료      
 6. E가 Leaf node라면 :      
-- E의 Object들을 모두 Q에 삽입 
+- E의 Object들의 $D_{ST}$를 키(Key)로 모두 Q에 삽입 
 7. E가 InnerNode라면 :
-- E의 Node들을 모두 Q에 삽입
+- E의 Node들들의 $MIND_{ST}$를 키(Key)로 모두 Q에 삽입
    
 
 > ※ 추가 업데이트 및 검증 예정
@@ -302,3 +317,15 @@ $$ P(Q.keywords|N.doc) = \prod_{t\in Q.keywords}\hat{p}(t|\theta _{O.doc}) $$
 # 참고자료
 - Shashi Shekhar and Sanjay Chawla, Spatial Databases: A Tour, Prentice Hall, 2003
 - P. RIigaux, M. Scholl, and A. Voisard, SPATIAL DATABASES With Application to GIS, Morgan Kaufmann Publishers, 2002
+- Cao et al. Retrieving Top-k Prestige-Based Relevant Spatial Web Objects. VLDB11.
+- Zhang et al. Keyword search in spatial databases: Towards searching by document. ICDE 2009.
+- Zhang et al. Locating mapped resources in web 2.0. ICDE 2010.
+- Guo et al. Efficient algorithms for answering the m-closest keywords query. SIGMOD’15
+- Cao et al. Efficient Processing of Spatial Group Keyword Queries. TODS’15
+- Skovsgaard and Jensen. Finding top-k relevant groups of spatial web objects. VLDB J. ’15
+- Lu et al. Reverse Spatial and Textual k Nearest Neighbor Search. SIGMOD, 2011
+- Choudhury et al. Maximizing bichromatic reverse spatial and textual k-NN queries. VLDB’16
+- Chen et al. Answering why-not questions on spatial keyword top-k queries. ICDE’15
+- Chen et al. Answering why-not spatial keyword top-k queries via keyword adaption ICDE'16
+- Bouros et al. Spatio-Textual Similarity Join, PVLDB‘12
+- Fan et al.: SEAL: Spatio-Textual Similarity Search, PVLDB 12
