@@ -185,85 +185,129 @@ if __name__ == "__main__":
 ```
 
 ### 2) Just-In-Time (JIT) 컴파일
-개발 과정에서 빠른 반복을 위해 torch.utils.cpp_extension.load() 함수를 사용하여 즉석에서
-컴파일할 수 있다.
+총 두 가지 방식이 있는데 커널과 바인딩 코드를 포함하는 .cpp 파일과 .cu 파일을  torch.utils.cpp_extension.load()을 이용하여 불러와서 사용하는 방식과
+c++ 소스 코드를 Python 문자열로 torch.utils.cpp_extension.load_inline()에 직접 전달하여 사용하는 방식 두 가지가 있다.
 
+아래에서 예시와 함께 살펴보겠다.
+
+#### a. 파일 불러와서 사용
 1. C++ 로 CUDA 커널을 짠다.
-2. C++ 로 인터페이스를 짠다.
+2. C++ 로 인터페이스를 짠다.   
+※ setuptools를 이용한 Ahead-of-Time 빌드 방식에서 사용하던 예시를 그대로 가져오겠다.   
 3. Python에서 커널 바인드 및 컴파일해서 호출해서 사용한다.
+```python3
+from torch.utils.cpp_extension import load
+import torch
 
-#### b. 사용 예시
-python 코드 내에서 load하거나 inline code로 불러온다.
+cuda_matrix_ops = load(
+  name='my_extension',
+  sources=['src/my_kernel.cu', 'src/my_extension.cpp'],
+  verbose=True
+)
+
+def test():
+  device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+  a = torch.randn(4, 4, device=device, dtype=torch.float32)
+  b = torch.randn(4, 4, device=device, dtype=torch.float32)
+  result = torch.zeros(4, 4, device=device, dtype=torch.float32)
+
+  cuda_matrix_ops.multiply(a, b, result)
+  print("Result:", result)
+
+if __name__ == "__main__":
+  test()
+```
+
+#### b. Python 코드 내에서 사용
+위에서 사용하는 코드를 그대로 옮겼습니다.
 
 ```python
-# python_usage.py (JIT 예시)
 from torch.utils.cpp_extension import load_inline
 import torch
 
-# C++ 및 CUDA 소스 코드를 문자열로 정의
 cuda_source = """
-__global__ void add_kernel(const float* x, const float* y, float* z, int N) {
-    int index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index < N) {
-        z[index] = x[index] + y[index];
+#include <cuda_runtime.h>
+
+__global__ void matrixMulKernel(const float* A, const float* B, float* C, int N) {
+    int row = blockIdx.y * blockDim.y + threadIdx.y;
+    int col = blockIdx.x * blockDim.x + threadIdx.x;
+    if (row < N && col < N) {
+        float value = 0;
+        for (int k = 0; k < N; ++k) {
+            value += A[row * N + k] * B[k * N + col];
+        }
+        C[row * N + col] = value;
     }
+}
+
+void matrixMul(const float* A, const float* B, float* C, int N) {
+    float *d_A, *d_B, *d_C;
+    size_t size = N * N * sizeof(float);
+    
+    cudaMalloc(&d_A, size);
+    cudaMalloc(&d_B, size);
+    cudaMalloc(&d_C, size);
+    
+    cudaMemcpy(d_A, A, size, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_B, B, size, cudaMemcpyHostToDevice);
+    
+    dim3 threadsPerBlock(16, 16);
+    dim3 numBlocks((N + threadsPerBlock.x - 1) / threadsPerBlock.x, 
+                   (N + threadsPerBlock.y - 1) / threadsPerBlock.y);
+    matrixMulKernel<<<numBlocks, threadsPerBlock>>>(d_A, d_B, d_C, N);
+    
+    cudaMemcpy(C, d_C, size, cudaMemcpyDeviceToHost);
+    
+    cudaFree(d_A);
+    cudaFree(d_B);
+    cudaFree(d_C);
 }
 """
 
 cpp_source = """
 #include <torch/extension.h>
-#include <cuda_runtime.h>
 
-// CUDA 커널 래퍼
-void add_wrapper(at::Tensor x, at::Tensor y, at::Tensor z, int N) {
-    // 적절한 그리드 및 블록 크기 계산
-    dim3 blocks((N + 255) / 256, 1, 1);
-    dim3 threads(256, 1, 1);
+void matrixMul(const float* A, const float* B, float* C, int N);
+
+// Function to multiply two matrices
+void multiply_matrices(torch::Tensor a, torch::Tensor b, torch::Tensor result) {
+    // Check that the input tensors are on the same device
+    TORCH_CHECK(a.device() == b.device(), "Input tensors must be on the same device");
+    TORCH_CHECK(a.device() == result.device(), "Result tensor must be on the same device");
     
-    // 현재 CUDA 스트림 가져오기 (분산 학습 등에서 중요)
-    cudaStream_t stream = at::cuda::getCurrentCUDAStream();
-
-    add_kernel<<<blocks, threads, 0, stream>>>(
-        x.data_ptr<float>(), y.data_ptr<float>(), z.data_ptr<float>(), N);
+    // Check that the dimensions are compatible for multiplication
+    TORCH_CHECK(a.size(1) == b.size(0), "Incompatible dimensions for matrix multiplication");
+    
+    // Launch the CUDA kernel for matrix multiplication
+    int64_t rows = a.size(0);
+    matrixMul(a.data_ptr<float>(), b.data_ptr<float>(), result.data_ptr<float>(), rows);
 }
 
-// Python 바인딩
-PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
-    m.def("custom_add", &add_wrapper, "Custom add kernel (CUDA)");
-}
 """
 
-# 확장 프로그램 컴파일 및 로드
-my_cuda_extension = load_inline(
-    name="MatmulExtension",
+cuda_matrix_ops = load_inline(
+    name='my_extension',
     cpp_sources=[cpp_source],
     cuda_sources=[cuda_source],
-    functions=['Matmul'],
+    functions=['multiply_matrices'],
     verbose=True
 )
+
+def test():
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    a = torch.randn(4, 4, device=device, dtype=torch.float32)
+    b = torch.randn(4, 4, device=device, dtype=torch.float32)
+    result = torch.zeros(4, 4, device=device, dtype=torch.float32)
+    
+    cuda_matrix_ops.multiply_matrices(a, b, result)
+    print("Result:", result)
+
+if __name__ == "__main__":
+    test()
 ```
 
-빌드가 완료되면 아래와 같이 불러와서 사용한다.
+이전 방식에서 PYBIND11_MODULE로 바인딩하던 것은 load_inline에서 해주기 때문에 함수이름이 변경되었습니다.
 
-```python
-import torch
-# JIT 사용 시: my_cuda_extension는 이미 로드됨
-
-# CUDA 텐서 생성
-x = torch.randn(1000).cuda()
-y = torch.randn(1000).cuda()
-z = torch.empty_like(x).cuda()
-
-# 사용자 정의 CUDA 함수 호출
-MatmulExtension.Matmul(x, y, z)
-
-# 결과 확인
-expected = x + y
-assert torch.allclose(z, expected)
-```
-
-> 추가 업데이트 예정
-{: .prompt-tip }
 
 # 참고문헌
 - https://tutorials.pytorch.kr/advanced/cpp_custom_ops.html
