@@ -35,7 +35,7 @@ PyTorch Extension은 C++/CUDA 커스텀 코드를 PyTorch에 통합하여 성능
 이번 예시에서는 행렬 곱셈을 하는 커널을 만들어서 pytorch에서 사용할 수 있도록 해보겠다.   
 $N \times N $ 정방 행렬 간의 곱셈을 하는 코드를 만들어서 구동해보도록 하겠다.
 
-1. 디렉터리 구조 생성
+##### 1. 디렉터리 구조 생성
 아래대로 디렉터리 구조를 생성한다.
 ```
 src/
@@ -49,7 +49,7 @@ test.py
 실질적으로 CUDA 및 C++ 코드가 들어있는 src 폴더와 코드를 빌드하기 위한 setup.py 파일
 그리고 제대로 빌드되었는지 확인하기 위한 test.py 이다.
 
-2. CUDA 커널 생성
+##### 2. CUDA 커널 생성
 my_kernel.cu 라는 이름으로 파일을 만들고 커널 코드를 작성한다.   
    
 ```cuda
@@ -95,7 +95,7 @@ void matrixMul(const float* A, const float* B, float* C, int N) {
 
 ```
 
-2. kernel Header 생성
+##### 3. kernel Header 생성
 해당 Kernel의 함수를 인식하게 할 수 있는 커널 헤더를 만든다. 커널에 정의한 함수와 동일한 반환값과 인자를 주어야하며   
 실질적으로 외부에 노출되는 함수이다.   
    
@@ -110,7 +110,7 @@ void matrixMul(const float* A, const float* B, float* C, int N);
 #endif // MY_KERNEL_H
 ```
 
-3. CPP Wrapper 생성
+##### 4. CPP Wrapper 생성
 커널 함수를 CPP로 감싸준다. 여기서 TORCH EXTENSION 헤더에서 제공하는 것들로 타입 체크와 그외의 필요한 바인딩을 해준다.   
    
 ```cpp
@@ -137,7 +137,7 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
 }
 ```
 
-4. Build를 위한 setup.py 생성
+##### 5. Build를 위한 setup.py 생성
 여기서 빌드할때 필요한 파일을 추가하며 cmdclass에서 빌드간 사용하기 위한 명령어를 정의한다.   
    
 ```python
@@ -158,13 +158,13 @@ setup(
 )
 ```
 
-5. 빌드
+##### 6. 빌드
 실제로 아래 명령어를 통해 빌드한다.   
 ```shell
 python3 setup.py build_ext --inplace
 ```
 
-6. 테스트
+##### 7. 테스트
 실제 구동되면 Result 이후에 4x4 배열의 곱이 나온다.   
 ```python
 import sys
@@ -197,7 +197,7 @@ c++ 소스 코드를 Python 문자열로 torch.utils.cpp_extension.load_inline()
 #### a. 파일 불러와서 사용   
 1. C++ 로 CUDA 커널을 짠다.
 2. C++ 로 인터페이스를 짠다.   
-※ setuptools를 이용한 Ahead-of-Time 빌드 방식에서 사용하던 예시를 그대로 가져오겠다.   
+   ※ setuptools를 이용한 Ahead-of-Time 빌드 방식에서 사용하던 예시를 그대로 가져오겠다.   
 3. Python에서 커널 바인드 및 컴파일해서 호출해서 사용한다.    
 
 ```python3
@@ -224,7 +224,7 @@ if __name__ == "__main__":
 ```
 
 #### b. Python 코드 내에서 사용
-위에서 사용하는 코드를 그대로 옮겼습니다.
+위에서 사용하는 코드를 그대로 옮겼다.
 
 ```python
 from torch.utils.cpp_extension import load_inline
@@ -311,7 +311,7 @@ if __name__ == "__main__":
     test()
 ```
 
-이전 방식에서 PYBIND11_MODULE로 바인딩하던 것은 load_inline에서 해주기 때문에 함수이름이 변경되었습니다.
+이전 방식에서 PYBIND11_MODULE로 바인딩하던 것은 load_inline에서 해주기 때문에 함수이름이 변경되었다.
 
 
 # 참고문헌
