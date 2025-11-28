@@ -200,7 +200,7 @@ c++ 소스 코드를 Python 문자열로 torch.utils.cpp_extension.load_inline()
    ※ setuptools를 이용한 Ahead-of-Time 빌드 방식에서 사용하던 예시를 그대로 가져오겠다.   
 3. Python에서 커널 바인드 및 컴파일해서 호출해서 사용한다.    
 
-```python3
+```python
 from torch.utils.cpp_extension import load
 import torch
 
