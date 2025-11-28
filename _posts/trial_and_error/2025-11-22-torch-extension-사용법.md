@@ -50,7 +50,8 @@ test.py
 그리고 제대로 빌드되었는지 확인하기 위한 test.py 이다.
 
 2. CUDA 커널 생성
-my_kernel.cu 라는 이름으로 파일을 만들고 커널 코드를 작성한다.
+my_kernel.cu 라는 이름으로 파일을 만들고 커널 코드를 작성한다.   
+   
 ```cuda
 #include <cuda_runtime.h>
 #include "my_kernel.h"
@@ -96,7 +97,8 @@ void matrixMul(const float* A, const float* B, float* C, int N) {
 
 2. kernel Header 생성
 해당 Kernel의 함수를 인식하게 할 수 있는 커널 헤더를 만든다. 커널에 정의한 함수와 동일한 반환값과 인자를 주어야하며   
-실질적으로 외부에 노출되는 함수이다.
+실질적으로 외부에 노출되는 함수이다.   
+   
 ```cpp
 #ifndef MY_KERNEL_H
 #define MY_KERNEL_H
@@ -109,7 +111,8 @@ void matrixMul(const float* A, const float* B, float* C, int N);
 ```
 
 3. CPP Wrapper 생성
-커널 함수를 CPP로 감싸준다. 여기서 TORCH EXTENSION 헤더에서 제공하는 것들로 타입 체크와 그외의 필요한 바인딩을 해준다.
+커널 함수를 CPP로 감싸준다. 여기서 TORCH EXTENSION 헤더에서 제공하는 것들로 타입 체크와 그외의 필요한 바인딩을 해준다.   
+   
 ```cpp
 #include <torch/extension.h>
 #include "my_kernel.h"
@@ -135,7 +138,8 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
 ```
 
 4. Build를 위한 setup.py 생성
-여기서 빌드할때 필요한 파일을 추가하며 cmdclass에서 빌드간 사용하기 위한 명령어를 정의한다.
+여기서 빌드할때 필요한 파일을 추가하며 cmdclass에서 빌드간 사용하기 위한 명령어를 정의한다.   
+   
 ```python
 from setuptools import setup
 from torch.utils.cpp_extension import BuildExtension, CUDAExtension
@@ -155,13 +159,13 @@ setup(
 ```
 
 5. 빌드
-실제로 아래 명령어를 통해 빌드한다.
+실제로 아래 명령어를 통해 빌드한다.   
 ```shell
 python3 setup.py build_ext --inplace
 ```
 
 6. 테스트
-실제 구동되면 Result 이후에 4x4 배열의 곱이 나온다.
+실제 구동되면 Result 이후에 4x4 배열의 곱이 나온다.   
 ```python
 import sys
 import torch
@@ -190,11 +194,12 @@ c++ 소스 코드를 Python 문자열로 torch.utils.cpp_extension.load_inline()
 
 아래에서 예시와 함께 살펴보겠다.
 
-#### a. 파일 불러와서 사용
+#### a. 파일 불러와서 사용   
 1. C++ 로 CUDA 커널을 짠다.
 2. C++ 로 인터페이스를 짠다.   
 ※ setuptools를 이용한 Ahead-of-Time 빌드 방식에서 사용하던 예시를 그대로 가져오겠다.   
-3. Python에서 커널 바인드 및 컴파일해서 호출해서 사용한다.
+3. Python에서 커널 바인드 및 컴파일해서 호출해서 사용한다.    
+
 ```python3
 from torch.utils.cpp_extension import load
 import torch
