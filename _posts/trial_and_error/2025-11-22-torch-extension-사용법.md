@@ -5,6 +5,7 @@ date: 2025-11-24 23:30:00 +0900
 categories: [Trial and error]
 tags: [GPU, CUDA, Torch extension] 
 render_with_liquid: false
+use_math: true
 ---
 
 # Torch extension 사용법
