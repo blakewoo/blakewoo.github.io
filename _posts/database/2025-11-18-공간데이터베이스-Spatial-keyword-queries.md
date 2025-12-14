@@ -163,9 +163,9 @@ $$ w_{j,i} = tf_{j,i} \times idf_{j} $$
 
 여기서 $tf_{j,i}$는 document i에서 word j가 몇번 등장하는지이고 $idf_{j}$ 는 아래와 같은 식으로 구한다.
 
-$$ idf_{j} = log_{2}\frac{\left| D \right|}{\left| \left\{ document\in D | j\in document \right\} \right|} $$
+$$ idf_{j} = log_{2}\frac{\left| D \right|}{\left| \left\{ document\in D | j\in document \right\} \right|} $$   
 
-분자인 $ \left| D \right| $는 전체 document 총 개수이고 분모인 
+분자인 $ \left| D \right| $는 전체 document 총 개수이고 분모인    
 
 $$ \left| \left\{ document\in D | j\in document \right\} \right| $$ 
 
