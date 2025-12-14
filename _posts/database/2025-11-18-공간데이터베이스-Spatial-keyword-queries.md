@@ -165,7 +165,7 @@ $$ w_{j,i} = tf_{j,i} \times idf_{j} $$
 
 $$ idf_{j} = log_{2}\frac{\left| D \right|}{\left| \left\{ document\in D | j\in document \right\} \right|} $$
 
-분자인 $ \left| D \right| $는 전체 document 총 개수이고 분모인 $ \left| \left\{ document\in D | j\in document \right\} \right| $ 는 word j가 있는 document의 개수이다.
+분자인 $$ \left| D \right| $$는 전체 document 총 개수이고 분모인 $$ \left| \left\{ document\in D | j\in document \right\} \right| $$ 는 word j가 있는 document의 개수이다.
 
 "apple" 에 대해서 TF-IDF를 구해보자면 아래와 같다.
 
