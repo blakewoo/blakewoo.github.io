@@ -121,7 +121,65 @@ GPU 기반 검색을 거쳐서 후보이웃을 식별한 뒤에 해당 후보들
 지연시간 SLO을 맞추기 위해 적응형으로 배치 크기를 변경한다.
   
 ## 4. 평가 및 분석
-  
+### 1) 실험 환경 
+#### a.하드웨어
+dual-socket 서버(두 Intel Xeon Gold 5218)   
+DRAM $376\,$GB   
+GPU는 NVIDIA A100 with $40\,$GB HBM(PCIe 3.0)   
+로컬 SSD(Intel D3-S4510)
+
+#### b. 운영체제
+Ubuntu 18.04.6 LTS
+
+### 2) 사용 데이터 셋
+- Wikipedia: $35$M vectors, $D{=}768$.
+- MSMARCO: $101$M vectors, $D{=}768$.
+- MSTuring: $200$M vectors, $D{=}100$.
+- Deep1B: $1$B vectors, $D{=}96$.
+- Text2Image: $100$M vectors, $D{=}200$.
+
+### 3) 워크로드
+스트리밍 시나리오를 모사하는 아래의 네/다섯 유형   
+SlidingWindow, ExpirationTime, Clustered, MSTuring-IH 등.
+각 워크로드는 삽입/삭제/검색 비율과 공간적·시간적 분포가 다름.
+
+### 4) 전체 성능
+#### a. 지연시간
+QPS를 낮음(500)→중간(2000)→높음(10000)으로 확장한 실험
+저부하에서는 p99가 약 몇 ms 수준(예: 전체적으로 < 10ms), 동기화 비용 때문에 약간의 오버헤드가 있었음. 
+중간 부하에서는 p50 ≈ 4.3ms, p99 ≈ 7.9ms(논문 지표). 
+고부하에서는 baselines의 p99가 > 900ms로 폭등한 반면 SVFusion은 검색 p99 ≈ 16.5ms, 삽입 p99 ≈ 45.3ms로 견고하게 유지되었다.
+
+![img1.png](/assets/blog/paper/SVFusion/img1.png)
+
+#### b. WAVP(Workload-Aware Vector Placement) 및 캐시 전략 효과
+- 비교 대상 : SVFusion w/o WAVP, LRU, LFU, LRFU
+- 결과 : WAVP 탑재시 최대 7.2배 개선 및 Latency 최대 5.1배 감소(특정 워크로드에 한해서)
+- 메모리 비율(가용 GPU 메모리 비율)을 20%에서 100%로 변화시켜도 WAVP가 우수함
+
+#### c. 디스크 확장(대규모 데이터, Deep1B) 결과
+- 인덱스 구성 시간이 DiskANN 대비 5.26 배 빨라짐 (GPU 서브그래프 빌드 단계에서 약 9.1배 가속)
+- Recall-Throughput-Delay 관점에서 SVFusion은 높은 recall 구간에서 DiskANN 대비 처리량은 2.3배 높았고 Letancy는 0.7~1.6% 저하가 관찰됨
+
+#### d. 삭제·수복 전략 평가
+- 실험 대상 : Lazy deletion만, Lazy + global consolidation, 논문 제안(논리적 삭제 + localized lightweight repair + 주기적 global consolidation).
+- 결과 : 제안 방식이 recall에서 2.3% ~ 5.2% 개선을 보였고, global consolidation 대비 오버헤드가 57.6% 절감됨. 실시간 삭제 출적에 따른 그래프 단편화 문제에 더 탄력적인 것으로 판별됨
+
+#### e. 비용 분해 및 확장성
+- 삽입 성능 분해: 데이터 전송(약 $45.4\%$), 거리 계산(약 $33.6\%$), 후보 재정렬(약 $10.3\%$), reverse-add(약 $10.6\%$). 즉 데이터 이동 비용이 지배적.
+- CPU 스레드 수 실험: 스레드 증가에 따른 처리량 향상은 $16$ 스레드까지 효과적, 그 이후로 수익 감소(락·동기화 오버헤드 영향).
+- GPU-기반 비교: CAGRA·GGNN 등 GPU 전용 기법은 데이터 전체가 GPU에 올라가지 않으면 전송 병목으로 SVFusion에 비해 성능 저하가 큼. SVFusion은 CPU-GPU 공동처리로 대규모 스케일에서도 우수.
+
+#### f. 일관성(Consistency) 보장 실험
+- 스트레스 테스트(50% insert + 50% search; 배치 크기 10; QPS $500$→$10000$)에서
+  - 동기화(프로토콜 활성) 시 Recall@1이 안정적으로 $0.96$ 유지.
+  - 동기화 비활성화 시 Recall@1이 QPS 증가에 따라 $0.96 \rightarrow 0.18$까지 급감.
+  - 결론: fine-grained locking + 버전 기반 비동기 GPU 전파 + CPU 폴백 조합이 읽기-갱신 일관성(read-after-write)을 실용적으로 보장함. 다만 동기화는 p99를 증가시키는 비용(예: 최고 부하에서 p99 $4.8\,$ms → $33.2\,$ms)과 연관됨.
+
+#### g. 파라미터 민감도
+- 예측 함수 가중치: $F_\lambda(x) = \alpha F_{recent} + \beta \log(1+E_{in})$에서 $\frac{\alpha}{\alpha+\beta}$를 변화시킨 결과, 최근 접근($F_{recent}$)에 다소 높은 가중치(약 $0.6$ 비율)가 최적 miss-rate를 만들었다.
+- 배치 크기 영향: 배치를 키우면 throughput은 증가하지만 recall 저하(그래프 업데이트 지연)와 latency 폭증(극단적으론 $>$ $1\,$s) 발생. 따라서 배치 크기 조절은 명확한 trade-off.
+
 > ※ 추가 업데이트 및 검증 예정이다.
 {: .prompt-tip }
 
