@@ -1,7 +1,7 @@
 ---
-title: ICDE24' - CAGRA: Highly Parallel Graph Construction and Approximate Nearest Neighbor Search for GPU
+title: ICDE24' - CAGRA, Highly Parallel Graph Construction and Approximate Nearest Neighbor Search for GPU
 author: blakewoo
-date: 2026-2-6 22:00:00 +0900
+date: 2026-2-5 22:00:00 +0900
 categories: [Paper]
 tags: [Paper, Vector Database] 
 render_with_liquid: false
@@ -15,19 +15,20 @@ GPU를 이용해서 가속이 가능한 Graph 알고리즘이다. 이전에 다�
 
 ## 1. 개요
 CAGRA는 대규모 데이터셋에 대한 Approximate Nearest Neighbor Search (ANNS)의 성능을 혁신하기 위해 NVIDIA GPU의 병렬 처리 능력과 메모리
-대역폭을 최대한 활용하도록 설계된 최첨단 graph-based ANNS 방법론입니다. 기존 ANNS 방법들은 GPU의 잠재력을 완전히 끌어내지 못했으며,
-특히 graph construction 및 small-batch query 처리에서 병목 현상이 있었는데, CAGRA는 이러한 격차를 해소하고,
-CPU 및 GPU 기반의 기존 SOTA (State-of-the-Art) 구현체들을 능가하는 성능을 보여준다..
+대역폭을 최대한 활용하도록 설계된 최첨단 graph-based ANNS 방법론이다. 기존 ANNS 방법들은 GPU의 잠재력을 완전히 끌어내지 못했으며,
+특히 graph construction 및 small-batch query 처리에서 병목 현상이 있었다. CAGRA는 이러한 격차를 해소하고,
+CPU 및 GPU 기반의 기존 SOTA (State-of-the-Art) 구현체들을 능가하는 성능을 보여준다.
 
 CAGRA의 핵심은 GPU 아키텍처에 최적화된 새로운 proximity graph 구조와 이를 구축하고 탐색하는 알고리즘에 있다.
 
 ## 2 CAGRA Graph 설계
-
 CAGRA 그래프는 이론적인 그래프 특성보다는 실제 검색 구현 성능에 중점을 둔 휴리스틱(heuristic) 방식으로 최적화된다.
 
 ### 1) Fixed Out-Degree ($d$)
-CAGRA 그래프의 모든 노드는 동일한 고정된 out-degree $d$를 가진다. 이는 GPU의 massively parallel computing 환경에서 load imbalance를
-최소화하고 균일한 연산을 가능하게 하여 하드웨어 활용도를 극대화한다.
+CAGRA 그래프의 모든 노드는 동일한 고정된 out-degree $d$를 가진다.
+고정 되지 못한 $d$ 를 쓴다면 덜 중요한 거리 계산을 줄일 수 있지만, 차수가 너무 작을시 CTA(Cooperative Thread Array), 즉 스레드 
+블록을 충분히 포화시킬 수 없어서 하드웨어 활용도가 낮아진다. 때문에 고정된 $d$ 값을 사용함으로 써 
+GPU의 massively parallel computing 환경에서 load imbalance를 최소화하고 균일한 연산을 가능하게 하여 하드웨어 활용도를 극대화한다.
 
 ### 2) Directional
 Fixed out-degree의 자연스러운 결과로 그래프는 directed graph가 됩니다.
