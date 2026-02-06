@@ -31,34 +31,35 @@ CAGRA 그래프의 모든 노드는 동일한 고정된 out-degree $d$를 가진
 GPU의 massively parallel computing 환경에서 load imbalance를 최소화하고 균일한 연산을 가능하게 하여 하드웨어 활용도를 극대화한다.
 
 ### 2) Directional
-Fixed out-degree의 자연스러운 결과로 그래프는 directed graph가 됩니다.
+Fixed out-degree의 자연스러운 결과로 그래프는 directed graph가 된다.
 
 ### 3) No Hierarchy
-HNSW와 같은 계층적 구조를 사용하지 않는다.. 대신 GPU의 높은 병렬 처리 능력과 메모리 대역폭을 활용하여
+HNSW와 같은 계층적 구조를 사용하지 않는다. 대신 GPU의 높은 병렬 처리 능력과 메모리 대역폭을 활용하여
 무작위 샘플링을 통해 초기 노드를 효율적으로 선택한다.
 
 ## 3. CAGRA Graph Construction 및 최적화
-
 그래프 구축은 크게 두 단계로 나뉜다.
 
 ### 1) Initial Graph Construction
 - NN-Descent 알고리즘을 사용하여 k-NN graph를 초기 그래프로 구축한다. 이때 초기 out-degree $d_{init}$는 최종 CAGRA 그래프의 degree $d$의 2배 또는 3배로 설정한다.
 - 각 노드의 연결된 이웃 리스트는 source node로부터의 distance 기준으로 오름차순 정렬됩니다. 이 과정은 각 노드 리스트에 대한 연산이 독립적이므로 GPU에서 효율적으로 병렬 실행 가능하다.
+
 ### 2) Graph Optimization
 이 단계는 dataset이나 distance calculation이 필요 없으며, 높은 병렬성을 가진다. 
+
 #### a. Reordering Edges
 그래프의 다양성을 높이고 2-hop node counts를 증가시키기 위해 엣지(edge)의 순서를 재정렬한다.
 - "detourable route" 개념을 사용한다. 노드 X에서 Y로 가는 엣지 $e_{X \rightarrow Y}$가 있을 때, 다른 노드 Z를 경유하는 경로 $(e_{X \rightarrow Z}, e_{Z \rightarrow Y})$가 $max(w_{X \rightarrow Z}, w_{Z \rightarrow Y}) < w_{X \rightarrow Y}$를 만족하면 detourable하다고 봅니다. 여기서 $w$는 distance를 의미한다.
 - CAGRA는 실제 distance 대신, 초기 정렬된 이웃 리스트에서의 엣지 위치를 나타내는 "rank"를 사용하여 detourable route의 수를 근사한다 (Rank-based Reordering). 이는 distance-based reordering의 비실용적인 distance computation (O($N d_{init}^3$) 또는 대규모 distance table) 문제를 해결한다.
 - 재정렬 후, 각 노드에 대해 상위 $d$개의 이웃만 남기고 pruning한다.
-#### a. Reverse Edge Addition
+
+#### b. Reverse Edge Addition
 재정렬되고 pruning된 그래프에서 모든 엣지의 방향을 반전시킨 reversed graph를 생성한다. Reversed graph의 out-degree는 고정되지 않지만 $d$로 상한이 설정됩니다. Reversed 엣지는 pruning된 그래프에서의 rank 기준으로 정렬됩니다. 이 기술은 노드 reachability를 향상시키고 strongly connected components (strong CC)의 수를 줄인다.
 
 #### c. Merging
 Pruning된 그래프와 reversed graph에서 각각 $d/2$개의 자식 노드를 선택하여 병합한다.
 
 ### 3) CAGRA Search 알고리즘
-
 CAGRA의 검색 알고리즘은 internal top-M list (priority queue, 길이 $M \geq k$)와 candidate list (길이 $p \times d$)로 구성된 sequential memory buffer를 사용한다.
 
 #### a. Random Sampling (Initialization)
@@ -72,15 +73,14 @@ Internal top-M list의 상위 $p$개 노드 중 이전에 parent가 아니었던
 
 #### d. Distance Calculation
 Candidate list에 있는 노드들 중 해당 query에 대해 처음으로 후보가 된 노드들에 대해서만 distance를 계산한다. 이는 불필요한 재계산을 방지한다.
-
 이 과정은 internal top-M list의 인덱스 번호가 수렴할 때까지 반복됩니다. 최종적으로 internal top-M list의 상위 $k$개 엔트리가 ANNS의 결과로 반환된다.
 
 ### 4) GPU 최적화 기술
-
 CAGRA는 GPU의 특성을 활용하기 위한 여러 기술을 도입한다.
 
 #### a. Warp Splitting
 32개의 스레드로 구성된 warp를 소프트웨어적으로 더 작은 "team"으로 분할한다 (예: team size 4 또는 8). 이는 128비트 메모리 로드 효율성을 높여 GPU 활용도를 극대화한다. 데이터셋 차원이 작을 때 (예: 96차원 float 데이터), 전체 warp가 아닌 팀 단위로 벡터를 로드하고 여러 번 반복하여 벡터 전체를 로드하는 것이 효율적이다.
+
 #### b. Top-M Calculation
 Internal top-M list는 이미 정렬되어 있으므로, candidate buffer를 정렬한 후 bitonic sort의 merge 과정을 통해 기존 top-M list와 병합하여 전체 연산을 줄입니다. Candidate buffer가 작을 때 (≤ 512)는 warp-level bitonic sort를 사용하여 register에서 처리하고, 클 때 (> 512)는 CTA 내에서 radix-based sort를 사용한다.
 
@@ -91,7 +91,6 @@ Internal top-M list는 이미 정렬되어 있으므로, candidate buffer를 정
 노드가 이전에 parent 역할을 했는지 여부를 추적하기 위해 노드 인덱스 변수의 Most Significant Bit (MSB)를 플래그로 사용한다. 이는 hash table 룩업보다 빠르지만, 데이터셋 크기를 인덱스 데이터 타입 최대값의 절반으로 제한하는 단점이 있다.
 
 ### 5) 구현 선택 (Single-CTA vs. Multi-CTA)
-
 CAGRA는 query batch size와 internal top-M size에 따라 Single-CTA 및 Multi-CTA 구현을 동적으로 선택한다.
 
 #### a. Single-CTA Implementation
@@ -123,10 +122,8 @@ DEEP-1M, 10M, 100M 데이터셋에서 그래프 구축 시간은 데이터셋 �
 이는 CAGRA가 device memory 용량 내에서 대규모 데이터셋을 효율적으로 처리할 수 있음을 보여준다.
 
 ### 7) 결론
-
 CAGRA는 NVIDIA GPU의 고유한 아키텍처를 활용하여 graph construction 및 search operation 모두에서 탁월한 성능을 제공하는 혁신적인 ANNS 솔루션이다.
 CPU 및 GPU 기반의 기존 SOTA 방법론들을 능가하는 속도와 효율성을 보여주며, large-batch와 single query 시나리오 모두에서 높은 처리량을 달성했다.
-
 
 > ※ 추가 업데이트 예정이다.
 {: .prompt-tip }
