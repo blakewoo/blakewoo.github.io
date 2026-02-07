@@ -337,7 +337,7 @@ DiskANN을 사용할때 유일하게 튜닝한 인자는 W값이라고 말했으
 
 
 # 참고문헌
-- Laxman Dhulipala, , Majid Hadian, Rajesh Jayaram, Jason Lee, and Vahab Mirrokni. "MUVERA: Multi-Vector Retrieval via Fixed Dimensional Encodings." (2024).
+- Dhulipala, Laxman, Majid Hadian, Rajesh Jayaram, Jason Lee, and Vahab Mirrokni. ‘MUVERA: Multi-Vector Retrieval via Fixed Dimensional Encodings’. arXiv [Cs.DS], 2024. arXiv. http://arxiv.org/abs/2405.19504.
 - Khattab, Omar, and Matei, Zaharia. "ColBERT: Efficient and Effective Passage Search via Contextualized Late Interaction over BERT." . In Proceedings of the 43rd International ACM SIGIR Conference on Research and Development in Information Retrieval (pp. 39–48). Association for Computing Machinery, 2020.
 
 
