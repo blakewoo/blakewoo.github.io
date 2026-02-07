@@ -1,7 +1,7 @@
 ---
 title: VLDB26' - SVFusion, A CPU-GPU Co-Processing Architecture for Large-Scale Real-Time Vector Search 분석
 author: blakewoo
-date: 2026-1-30 23:00:00 +0900
+date: 2027-1-30 23:00:00 +0900
 categories: [Paper]
 tags: [Paper, Vector Database] 
 render_with_liquid: false
