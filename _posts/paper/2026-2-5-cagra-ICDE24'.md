@@ -155,7 +155,6 @@ CPU 및 GPU 기반의 기존 SOTA 방법론들을 능가하는 속도와 효율�
 {: .prompt-tip }
 
 # 참고문헌
-- Hiroyuki Ootomo, , Akira Naruse, Corey Nolet, Ray Wang, Tamas Feher, and Yong Wang. "CAGRA: Highly Parallel Graph Construction and Approximate Nearest Neighbor Search for GPUs." (2024).
-
+- Ootomo, Hiroyuki, Akira Naruse, Corey Nolet, Ray Wang, Tamas Feher, and Yong Wang. ‘CAGRA: Highly Parallel Graph Construction and Approximate Nearest Neighbor Search for GPUs’. arXiv [Cs.DS], 2024. arXiv. http://arxiv.org/abs/2308.15136.
 
 
