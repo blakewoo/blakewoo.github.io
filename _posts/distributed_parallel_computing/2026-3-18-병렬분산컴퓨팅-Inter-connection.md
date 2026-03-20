@@ -68,7 +68,7 @@ use_math: true
 
 ##### ③ Bisection Bandwidth   
 네트워크를 두 개의 동일한 반으로 나누는 가장 작은 절단면을 가로지르는 대역폭으로, 전체적인 네트워크의 품질을 측정하는 척도이다.    
-수식으로 환산하면 한 개의 $Bandwidth \time Link$ 이다.
+수식으로 환산하면 한 개의 $ Bandwidth \times Link $ 이다.
 
 #### a. Direct   
 각 프로세서에 스위치가 달려서 다른 프로세서와 직접 연결되는 방식을 Direct(Static) 방식이라고 하며 아래와 같은 방식이 있다.
@@ -100,8 +100,8 @@ use_math: true
 
 - Node degree = 4 : 각 노드에 연결된 최대 간선은 4개이다.
 - Diameter = 2 X (r-1) : 간단히 말해서 가장 멀리 있는 노드로 갈때 필요한 edge의 개수이다.
-- Link 개수 = 2 X (N-r) : 
-- Bisection width = r : 붉은 선으로 해당 네트워크를 나누었을 때 붉은 선에 걸리는 edge 개수이다.
+- Link 개수 = 2 X (N-r) : 한 라인만 봤을때 r-1개의 링크가 있다. 이 r-1개가 총 r개 있고, 세로로도 r개가 있다. 이는 $r(r-1) + r(r-1)$인데 이를 풀면 동일하게 나온다.
+- Bisection width = r : 붉은 선으로 해당 네트워크를 나누었을 때 붉은 선에 걸리는 edge 개수이다. 2d Mesh의 경우 r*r = N이기 때문에 r개이다.
 
 ##### ⓓ 2D Torus   
 2D 차원 그물에서 가장 먼 거리까지 edge를 추가한 형태이다. Mesh 구조의 경우 끝과 끝이 연결되어있지않지만
@@ -113,7 +113,7 @@ Torus 구조는 끝과 끝이 연결되어있다. 2D Mesh와 마찬가지로 3D,
 
 - Node degree = 2 : 각 노드에 연결된 최대 간선은 4개이다.
 - Diameter = 2 X (r/2)내림: 간단히 말해서 가장 멀리 있는 노드로 갈때 필요한 edge의 개수이다.
-- Link 개수 = 2 X N : Ring으로 만들면 노드 개수 만큼 edge가 필요하다.
+- Link 개수 = 2 X N : 한 라인에서 rxr만큼의 링크가 있고, 세로로 rxr개가 있다. 이는 N+N이므로 2N이 된다. 
 - Bisection width = 2 X r : 붉은 선으로 해당 네트워크를 나누었을 때 붉은 선에 걸리는 edge 개수이다.
 
 ##### ⓔ Fully connected   
@@ -121,7 +121,7 @@ Torus 구조는 끝과 끝이 연결되어있다. 2D Mesh와 마찬가지로 3D,
 
 - Node degree = N - 1 : 각 노드에 연결된 최대 간선은 4개이다.
 - Diameter = 1 : 간단히 말해서 가장 멀리 있는 노드로 갈때 필요한 edge의 개수이다.
-- Link 개수 = N X (N-1)/2 : Ring으로 만들면 노드 개수 만큼 edge가 필요하다.
+- Link 개수 = N X (N-1)/2
 - Bisection width = $(N/2)^{2}$ : 붉은 선으로 해당 네트워크를 나누었을 때 붉은 선에 걸리는 edge 개수이다.
 
 ##### ⓕ Hypercube    
