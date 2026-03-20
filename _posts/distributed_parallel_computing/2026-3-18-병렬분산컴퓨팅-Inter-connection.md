@@ -67,7 +67,8 @@ use_math: true
 목적지에서 첫 바이트를 받은 이후 데이터를 수신하는 속도를 의미하기도 한다
 
 ##### ③ Bisection Bandwidth   
-네트워크를 두 개의 동일한 반으로 나누는 가장 작은 절단면을 가로지르는 대역폭으로, 전체적인 네트워크의 품질을 측정하는 척도이다
+네트워크를 두 개의 동일한 반으로 나누는 가장 작은 절단면을 가로지르는 대역폭으로, 전체적인 네트워크의 품질을 측정하는 척도이다.    
+수식으로 환산하면 한 개의 $Bandwidth \time Link$ 이다.
 
 #### a. Direct   
 각 프로세서에 스위치가 달려서 다른 프로세서와 직접 연결되는 방식을 Direct(Static) 방식이라고 하며 아래와 같은 방식이 있다.
@@ -189,6 +190,24 @@ Node to Switch나 Switch to Switch로 연결할때 Perfect shuffle 방식으로 
 ![img.png](/assets/blog/distributed_parallel_computing/Parallel_hardware/img_13.png)
 
 순서대로 표현하면 straight, straight, straight, cross이다.
+
+###### ※ Collision
+방금 0010에서 0011로 가는 요청과 1010에서 0010으로 가는 요청이 동시에 발생한다면 어떻게 될까?   
+먼저 1010에서 0010을 XOR하면 아래와 같다.
+
+```
+1010
+0010
+----
+1000
+```
+
+이를 0010에서 0011로 가는 요청과 1010에서 0010으로 가는 요청을 같이 그려보면 아래와 같다.
+
+![img.png](/assets/blog/distributed_parallel_computing/Parallel_hardware/img_14.png)
+
+stage 1 시점에서 동일한 루트를 타고 전송됨을 확인할 수 있다. 이 경우 어느 한쪽은 기다려야한다.   
+위와 같은 경우를 collision이라고 한다.
 
 > ※ 추가 업데이트 예정
 {: .prompt-tip }
