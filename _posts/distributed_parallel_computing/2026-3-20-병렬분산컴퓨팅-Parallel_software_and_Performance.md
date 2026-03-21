@@ -1,7 +1,7 @@
 ---
 title: 병렬분산컴퓨팅 - Parallel software & Performance
 author: blakewoo
-date: 2026-3-21 18:00:00 +0900
+date: 2026-3-21 21:00:00 +0900
 categories: [Distributed & parallel computing]
 tags: [Parallel computing, Distributed computing] 
 render_with_liquid: false
