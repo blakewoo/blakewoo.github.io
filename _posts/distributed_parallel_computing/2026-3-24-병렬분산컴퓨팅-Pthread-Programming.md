@@ -109,10 +109,18 @@ pthread_cond_t condition;
 int pthread_cond_init(pthread_cond_t *cv, const pthread_condattr_t *cattr);
 int pthread_cond_destroy(pthread_cond_t *cv);
 int pthread_cond_wait(pthread_cond_t *cv, pthread_mutex_t *mutex);
+int pthread_cond_signal(pthread_cond_t *cv);
+int pthread_cond_broadcast(pthread_cond_t *cv);
 int pthread_cond_destroy(pthread_cond_t *cv);
 ```
 
-위 함수중에 wait은 mutex_lock과 함께 같이 사용하게 된다. 예를 들어 설명해겠다.
+위 함수중에서 Signal 함수는 한 개의 Thread만 깨우는 데, broadcast 함수는 다른 대기중인 모든 함수를 깨운다.
+Thread가 2개인 경우에는 차이가 없지만, 다수의 Thread인 경우 그 다음 실행할 Thread를 정할 주체를 정하는데 도움이 될 수 있다.   
+이는 Thread의 우선순위가 정해져있고 해당 Thread를 지정하여 Signal로 깨운다면 구현하는 쪽에서 깨우는 순서를 정하게 되겠지만
+그냥 broadcast로 깨운다면 OS에게 맡기는 것이기 때문이다.
+만약 wait 중인 Thread가 없을 때 Signal가 호출되었다고 해보자. 이 경우 어디 저장되는게 아니라 무시 된다.
+
+또한 위 함수중에 wait은 mutex_lock과 함께 같이 사용하게 된다. 예를 들어 설명해겠다.
 아래의 코드를 보자.
 
 ```c
@@ -159,11 +167,145 @@ while(1) {
 }
 ```
 
+##### ※ Mesa semantic & Hoare semantic
+Thread A, B가 있다고 해보자. 의사 코드는 아래와 같다.
+```c
+//Thread A
+lock();
+if(!condition) wait(); // --- (2)
+unlock();
+
+//Thread B
+lock();
+signal();
+//... (1)
+unlock();
+```
+
+Thread B에서 Critical section을 통과하여 signal()에 도착했을 때 취할 수 있는 방식은 두 가지가 있다.   
+Signal 전송 후 아래 (1) 코드를 실행하거나, 혹은 Thread B를 멈추고 Thread A에게 제어권을 넘겨주는 방식이다.   
+이를 각각 Mesa semantic, Hoare semantic이라고 한다.
+
+- Mesa semantic   
+  (1) 코드를 그대로 실행하는 방식이다. Thread B 이후에 Thread A가 실행될 것이므로 이 경우 Context switching이 1번이라 Context switching overhead가 적다.   
+  하지만, 위와 같은 2개의 Thread가 아닌 다수의 Thread의 경우 대기 중인 Thread A가 다시 실행되는 시점에서 실행 조건이 충족되지 않을 수도 있다(condition 변경 가능).
+  따라서 신호를 받는 시점에서 조건을 한번 더 확인해야하므로 코드 (2) 부분의 if는 while로 변경되어야한다.
+  
+- Hoare semantic   
+  Thread B가 제어권을 포기하고 Signal을 받는 Thread A에게 제어권을 넘긴다. 이 경우 Mesa semantic에 비해 Context switching이 한번 더 많이 발생하나 Semantic 흐름으로는
+  좀 더 자연스럽고 또한 Thread A 실행 이전에 condition이 바뀌지 않기 때문에 Thread A의 Critical section 접근이 보장된다.
+
+
+일반적으로는 Mesa semantic 방식으로 대부분 구현 되어있다.
+
 #### d. Semaphore
-정수 값을 사용하여 여러 스레드의 접근을 제어한다. (단, 세마포어는 엄밀히 Pthreads 표준의 일부는 아니므로 <semaphore.h>를 별도로 포함해야 한다)
+정수 값을 사용하여 여러 스레드의 접근을 제어한다. 만약 0 또는 1이라면 이진 세마포어라고 하며 본질적으로 mutex와 다르지 않다.   
+하지만 이 정수값이 1을 넘어가는 숫자일 경우 카운트 세마포어라고 하며 한정된 소수의 자원의 Critical section을 제어하는 방식이 된다.
+이 세마포어는 실질적으로 Pthread 표준은 아니고, OS에서 제공하는 기능이다. 따라서 사용시 <semaphore.h>를 별도로 포함해야 한다
+
+일반적으로는 기본적으로 아래 변수를 만들고 시작한다.
+
+```c
+sem_t semaphore;
+```
+
+위와 같이 만든 변수를 가지고 아래와 같은 함수로 제어한다.
+
+```c
+init sem_init(sem_t *sem, int pshared, unsigned int value); // 세마포어 초기화
+init sem_destroy(sem_t *sem); // 세마포어 제거
+int sem_wait(sem_t *sem); // 세마포어 카운트 하나 줄이기
+int sem_post(sem_t *sem); // 세마포어 카운트 하나 늘리기
+```
+
+sem_wait 함수의 경우 count 값 체크 후 count를 줄이거나, 줄이고나서 체크하거나 두 가지 방식이 있다.
+이는 전적으로 어떻게 구현하느냐에 따라 달린 것이다.
+
+sem_post 함수는 count 값을 증가시킨다. 앞서 condition variable에서 Signal과는 달리 count값이 보존되므로 무시되지 않고 
+해당 count 값을 가지고 처리하게 된다.   
+앞서 condition variable과 mutex로 구현했던 예제를 세마포어로 구현하면 아래와 같다.
+
+```
+// producer
+int in = 0;
+while(1) {
+  sem_wait(&empty);
+  sem_wait(&mutex);
+  buf[in] = getChar();
+  in = (in + 1)%MAX_SIZE;
+  sem_post(&mutex);
+  sem_post(&full);
+}
+
+// consumer
+int out = 0;
+while(1) {
+  sem_wait(&full);
+  sem_wait(&mutex);
+  useChar(buf[out]);
+  out = (out + 1)%MAX_SIZE;
+  sem_post(&mutex);
+  sem_post(&empty);
+}
+```
+
+full은 세마포어 카운트 0으로 초기화되고, empty는 MAX_SIZE로 초기화 된다.   
+즉 full은 꽉 찼는지, empty는 빈 자리가 몇개나 있는지 나타내는 것이다.
+
+만약 sem_wait의 순서를 뒤바꾸면 어떻게 될까?
+원래   sem_wait(&empty) -> sem_wait(&mutex) 였던 것을
+sem_wait(&mutex) -> sem_wait(&empty)로 바꾼다면? 당연하지만 dead lock이 발생한다.   
+condition variable 없이 mutex를 사용한 것과 동일한 문제가 발생하는 것이다.
 
 ### 5) Read-Write lock
+만약 어떤 연결 리스트에 접근한다고 생각해보자. 위에서 배운 바와 같이 연결 리스트 전체에 대해서 lock을 걸거나 혹은 접근하고자 하는 Node의
+앞 뒤에 대해서만 lock을 건다고 가정해보자. 이 경우 사실 READ의 경우 몇 개의 Thread가 동작해도 원 데이터에는 아무런 변화가 없는데
+lock 때문에 접근을 못한다고 하면 너무 비효율적이다. 따라서 Pthread는 readlock과 writelock을 지원한다.
+
+```c
+pthread_rwlock_rdlock(&rwlock);
+pthread_rwlock_wrlock(&rwlock);
+pthread_rwlock_unlock(&rwlock);
+```
+
+readlock과 writelock의 호환성은 아래와 같다.
+
+<table>
+    <tr>
+        <td>Current / New</td>
+        <td>Read Lock</td>
+        <td>Write Lock</td>
+    </tr>
+    <tr>
+        <td>Read Lock</td>
+        <td>O</td>
+        <td>X</td>
+    </tr>
+    <tr>
+        <td>Write Lock</td>
+        <td>X</td>
+        <td>X</td>
+    </tr>
+</table>
+
+이 과정에서 스레드 간의 우선 순위를 어떻게 처리하느냐에 따라 두가지 방식으로 나뉜다.
+- 읽기 우선 : 기다리는 읽기 Thread가 있다면 쓰기 Thread보다 먼저 실행되게 하며 읽기 Thread가 대기하지 않게 한다.
+- 쓰기 우선 : 쓰기 Thread가 대기중이라면 새로운 읽기 Thread의 접근을 막고 쓰기 Thread 작업을 먼저 처리한다. 대부분의 현대적인 시스템에서는 쓰기 우선 방식을 많이 사용한다.
+
+> ※ 추가 업데이트 예정
+{: .prompt-tip }
+> 
 ### 6) Thread-Safety
+다수의 Thread로 호출했을 때 문제가 없다면 Thread-Safety하다고 부른다.   
+가령 문자열을 받아들여 공백과 같은 구분자로 분리하여 토큰화하는 strtok 함수가 있다고 해보자.
+이 strstok은 이제까지 어디까지 잘랐는지 저장하는 pointer가 있다.   
+이 경우 global 변수로 둘 수 있는데, 만약 다수의 Thread를 이용해서 해당 Pointer를 변경할 일이 있다고 하면   
+Thread-Safety하지 못한 함수라고 할 수 있다.
+
+그외 Unsafe한 C library 함수들의 예시는 아래와 같다.
+- stdlib.h : rand
+- time.h : localtime
+
 > ※ 추가 업데이트 예정
 {: .prompt-tip }
 
