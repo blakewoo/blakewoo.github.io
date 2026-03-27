@@ -288,13 +288,162 @@ readlock과 writelock의 호환성은 아래와 같다.
     </tr>
 </table>
 
+#### a. 구현 옵션
 이 과정에서 스레드 간의 우선 순위를 어떻게 처리하느냐에 따라 두가지 방식으로 나뉜다.
-- 읽기 우선 : 기다리는 읽기 Thread가 있다면 쓰기 Thread보다 먼저 실행되게 하며 읽기 Thread가 대기하지 않게 한다.
-- 쓰기 우선 : 쓰기 Thread가 대기중이라면 새로운 읽기 Thread의 접근을 막고 쓰기 Thread 작업을 먼저 처리한다. 대부분의 현대적인 시스템에서는 쓰기 우선 방식을 많이 사용한다.
 
-> ※ 추가 업데이트 예정
-{: .prompt-tip }
-> 
+##### ⓐ 읽기 우선 
+기다리는 읽기 Thread가 있다면 쓰기 Thread보다 먼저 실행되게 하며 읽기 Thread가 대기하지 않게 하는 방식이다.   
+아래의 예시를 보자. 요청이 ``READ_1 - WRITE_1 - READ_2 - WRITE_2``` 순으로 들어왔다고 가정해보자.
+(언더바는 설명의 편의를 위해 임의로 붙인 것이고 실제로는 READ - WRITE - READ - WRITE 라고 생각하면 된다)
+이를 위해 정의된 변수는 아래와 같다.
+
+```c
+semaphore mutex = 1, wrt=1;
+int readcount = 0;
+```
+
+Writer Process는 아래와 같다.
+```c
+do {
+  wait(wrt);
+  ...
+  writing is performed
+  ...
+  signal(wrt)
+
+} while(1);
+```
+
+Reader Process는 아래와 같다.
+```c
+do {
+ wait(mutex);
+ readcount ++;
+ if(readcount == 1) wait(wrt);
+ signal(mutex);
+ ...reading is performed ...
+ wait(mutex)
+ readcount--;
+ if(readcount == 0) signal(wrt);
+ signal(mutex);
+} while(1);
+```
+
+1. READ_1 도착    
+READ_1이 도착하면 wait(mutex)를 거쳐 mutex lock을 획득하고, read_count가 1이기 때문에 wrt lock도 획득하게된다.
+
+2. WRITE_1 도착
+WRITE_1이 도착하면 READ_1이 wrt lock을 가지고 있기 때문에 wait(wrt)에서 대기하게 된다.
+
+3. READ_2 도착
+READ_2가 도착하면 READ_1이 mutex lock을 반환하기 전까지 wait(mutex)에 대기한다.
+   
+4. WRITE_2 도착
+WRITE_2가 도착하면 READ_1의 wrt lock 반환을 대기해야하므로 wat(wrt)에 대기한다.
+   
+이후 READ_1이 signal(mutex)를 지나면 READ_2가 실행 가능하므로 READ_1 -> READ_2 순으로 실행되며, WRITE_1과 WRITE_2는 
+WRITE_1 -> WRITE_2 순으로 실행되든, WRITE_2 -> WRITE_1 순으로 실행되든 한다. (Signal 시 어느 Thread를 깨우는지는 불명확)
+
+
+###### ※ 예시가 WRITE - READ - WRITE - READ 일때
+1. WRITE_1 도착   
+Writer process의 wait(wrt)를 호출하여 lock을 획득하고 작업을 시작한다.
+   
+2. READ_1 도착   
+Reader process의 wait(mutex)를 호출하여 lock을 획득 후 readcount를 1로 만들어놓는데, if에 걸려서 
+wait(wrt)를 호출한다. 이 과정에서 Write_1이 wrt lock을 갖고 있기 때문에 대기 한다.
+
+3. WRITE_2 도착
+Writer process의 wait(wrt)를 호출하여 wrt lock을 획득하려하는데, WRITE_1이 갖고 있어서 wait(wrt)에 걸려있다.
+   
+4. READ_2 도착    
+Reader process의 wait(mutex)를 호출하는데 mutex lock은 READ_1이 가지고 있다. wait(mutex)에서 걸려있다.
+
+여기까지 진행되는데, 만약에 WRITE_1이 완료되어 Signal(wrt)를 호출 하고 종료되었다고 해보자. 이후 순서는 아래와 같다.
+
+1. READ_1 or WRITE_2 실행      
+왜 둘 중 하나가 실행되냐고 묻는다면, 앞서 설명했듯이 Mutex든 Semaphore든 깨우는 Thread가 무엇일지는 알 수가 없기 때문이다. 
+둘다 wait(wrt)에 걸려있었기 때문에 둘 중에 하나가 선택되어 실행된다.
+   
+
+2. READ_1 먼저 실행될 경우 다음은 READ_2 -> WRITE_2 실행   
+READ_1이 먼저 실행되면 wrt lock을 가지고 Signal(mutex)를 거치기 때문에 wait(mutex)에 걸려있던 READ_2는 mutex lock을 가지고 내려올 수 있다.
+이 과정에서 readcount는 이미 2이므로 wait(wrt)에 걸리지 않는다. 이후 READ_2까지 readcount--를 지나게 되면 readcount가 0이기 때문에 signal(wrt)를 지나게 되고
+비로소 WRITE_2가 wrt lock을 가지고 실행하게 된다.
+
+
+3.  WRITE_2 먼저 실행될 경우 다음은 READ_1 -> READ_2 실행   
+WRITE_2가 실행될 경우 WRITE_2가 signal(wrt)를 지날때까지 READ_1은 wait(wrt)에 READ_2는 wait(mutex)에 걸려있다.   
+WRITE_2가 완료되면 READ_1이 풀려나고 계속 진행되면서 signal(mutex)를 지나기 때문에 READ_2도 풀리면서 순차적으로 실행된다.
+
+##### ⓑ 쓰기 우선
+쓰기 Thread가 대기중이라면 새로운 읽기 Thread의 접근을 막고 쓰기 Thread 작업을 먼저 처리한다. 대부분의 현대적인 시스템에서는 쓰기 우선 방식을 많이 사용한다.
+읽기 우선 방식과 동일한 예시를 사용하겠다. 요청이 ``READ_1 - WRITE_1 - READ_2 - WRITE_2``` 순으로 들어왔다고 가정해보자.
+(이번에도 언더바는 설명의 편의를 위해 임의로 붙인 것이고 실제로는 READ - WRITE - READ - WRITE 라고 생각하면 된다)
+이를 위해 정의된 변수는 아래와 같다.
+
+```c
+int readcount = 0, writecount = 0;
+semaphore mutex1 = 1, mutex2 = 1, rd = 1,wrt = 1;
+```
+
+Writer Process는 아래와 같다.
+```c
+do {
+ wait(mutex2);
+ writecount ++;
+ if(writecount == 1) wait(rd);
+ signal(mutex2);
+ wait(wrt);
+ // ... write is performed
+ signal(wrt);
+ wait(mutex2);
+ writecount --;
+ if(writecount == 0) signal(rd);
+ signal(mutex2);
+} while(1);
+```
+
+Reader Process는 아래와 같다.
+```c
+do {
+ wait(rd);
+ wait(mutex1);
+ readcount ++;
+ if(readcount == 1) wait(wrt);
+ signal(mutex1);
+ signal(rd);
+ // ... reading is performed
+ wait(mutex1);
+ readcount --;
+ if(readcount == 0) signal(wrt);
+ signal(mutex1);
+} while(1);
+```
+
+처음 도착하는 READ_1이 읽기를 실제로 실행하는 부분 초입까지 도착한 상태라고 해보자.
+
+1. READ_1 도착    
+   READ_1이 도착하면 wait(rd)를 거쳐 rd lock을 획득하고, wait(mutex1)를 거쳐 mutex1 lock을 획득하고
+   readcount를 증가시키는데 1이기 때문에 wrt lock도 획득하게된다. 이후 mutex1 lock을 해제하고, rd lock도 반환한다.
+
+2. WRITE_1 도착
+   WRITE_1이 도착하면 wait(mutex2)를 거쳐 mutex2 lock을 획득하고 writecount가 1이기 때문에 wait(rd)에 걸려 있다가 READ_1이 signal(rd)를
+   지나면 wait(wrt)에 걸려있다. READ_1이 읽기를 하지 않았기 때문에 wrt lock은 READ_1이 갖고 있기 때문이다.
+
+3. READ_2 도착
+   READ_2가 도착하면 wait(rd)에 걸려있는데 WRITE_1이 rd lock을 갖고 있기 때문이다
+
+4. WRITE_2 도착
+   WRITE_2가 도착하면 READ_1이 wrt lock을 가진채로 읽기 작업 중이라 wait(wrt)에 걸려있다.
+   
+이후 READ_1이 signal(mutex1)을 거쳐 모두 종료되었다고 하면, READ_1이 signal(wrt)를 지났을 것이므로 WRITE_1 또는 WRITE_2가 실행된다.
+
+1. WRITE_1이 실행될 경우 WRITE_2 -> READ_2 실행
+2. WRITE_2가 실행될 경우 WRITE_1 -> READ_2 실행
+
+이는 마지막 WRITE Thread 작업이 rd lock을 갖고 있기 때문에 이를 풀어주지 않으면 READ 작업은 할 수가 없기 때문에 WRITE의 모든 작업이 끝난뒤 READ Thread가 작동하게 된다.
+
 ### 6) Thread-Safety
 다수의 Thread로 호출했을 때 문제가 없다면 Thread-Safety하다고 부른다.   
 가령 문자열을 받아들여 공백과 같은 구분자로 분리하여 토큰화하는 strtok 함수가 있다고 해보자.
@@ -306,8 +455,6 @@ Thread-Safety하지 못한 함수라고 할 수 있다.
 - stdlib.h : rand
 - time.h : localtime
 
-> ※ 추가 업데이트 예정
-{: .prompt-tip }
 
 # 참고자료
 - 서강대학교 박성용 교수님 강의자료 - 병렬 분산 컴퓨팅  
