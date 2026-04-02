@@ -19,6 +19,10 @@ layout: compress
   {% if page.use_math %}
   {% include mathjax_support.html %}
   {% endif %}
+
+  {% if page.mermaid %}
+  {% include mermaid.html %}
+  {% endif %}
 </head>
 <body>
 {% include sidebar.html lang=lang %}
@@ -81,10 +85,6 @@ layout: compress
 <!-- JavaScripts -->
 
 {% include js-selector.html lang=lang %}
-
-{% if page.mermaid %}
-{% include mermaid.html %}
-{% endif %}
 
 {% include_cached search-loader.html lang=lang %}
 </body>
