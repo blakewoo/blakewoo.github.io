@@ -91,7 +91,7 @@ DiskAnn의 방식을 간략하게 설명하자면 이 방식은 SSD의 사용을
 이후 가치지기를 통해 간선 수를 줄인다. 이때 간선수를 줄이는 것을 위해 $$ \alpha $$ 값을 사용한다.
 여기서 $ \alpha $ 값이란 아래와 같은 값이다.
 
-$$ Distance(v1,v3) > \alpha \times \times (Distance(v1,v2) + Distance(v1,v3)) $$
+$$ Distance(v1,v3) > \alpha \times (Distance(v1,v2) + Distance(v1,v3)) $$
 
 $ \alpha $ 값이 1.2 일 경우 위 식에서 1.2까지해도 수식이 참이라면 끊지 않고 유지한다는 뜻이다.
 이후 가지치기 한 것에서 추가적으로 가지를 더 연결하는데 이때는 $ \alpha = 1.2$ 값을 사용한다.
