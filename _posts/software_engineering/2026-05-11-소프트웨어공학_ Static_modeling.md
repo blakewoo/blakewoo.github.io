@@ -1,7 +1,7 @@
 ---
 title: 소프트웨어 공학 - OOLC - Static modeling (정적 모델링)
 author: blakewoo
-date: 2026-5-11 23:00:00 +0900
+date: 2026-5-14 23:00:00 +0900
 categories: [software engineering]
 tags: [software engineering] 
 render_with_liquid: false
@@ -121,6 +121,7 @@ use_math: true
 - 복수 유형이 공통 속성을 공유하는가 -> Superclass 적용
 - 각 유형이 고유 속성을 별도 보유하는가 -> Subclass 적용
 - 두 조건 모두 충족 시 계층 구조 적용
+- 클래스 간에 다중성은 명시하되 서브 클래스의 경우 생략이 가능함.
 
 #### b. 연관 클래스 (Association Class)
 - 두 엔티티 클래스 사이의 연관에 속성이 필요하면 Association Class로 독립 모델링한다
@@ -138,7 +139,8 @@ use_math: true
 
 - 데이터 타입 표준
   - 속성에 각각 데이터 타입을 정의하는 것이다. 이 때 사용금지 타입도 명시한다.  
-
+  - 유한한 값의 집합을 가지는 속성은 enum 타입으로 별도 정의하되, 타입이 결정되지 않은 속성을 명세에 남기지 않는다
+  
 
 - 열거형(Enum) 정의
   - enum 타입으로 정의된 속성은 별도 «enumeration» 클래스로 명시한다
