@@ -28,7 +28,7 @@ use_math: true
 
 • Aggregation (ATM은 Bank 없이도 물리적으로 존재가 가능하다)   
 • Composition (CardReader는 ATM의 일부, ATM 없이 독립적으로 존재가 불가하다)   
-• Association (구조적 포함이 아닌 단순 연관)
+• Association (구조적 포함이 아닌 단순 연관, 예를 들면 대학과 학과)
 
 은행 시스템에서 물리적 클래스와 관계, 다중성을 포함한 예시는 아래와 같다.
 

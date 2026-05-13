@@ -11,8 +11,7 @@ use_math: true
 # Object Structuring
 객체 구조화는 아래의 순서를 따른다.
 
-## 1. Client/Server 식별
-### 1) Client/Server 서브시스템 구조
+## 1. Object Structuring 분류
 모든 객체는 반드시 아래의 스테레오타입 중 하나를 명시하며 하나의 객체가 두 가지 역할을 겸하지 않도록 단일 책임을 유지한다
 
 <table>
@@ -58,6 +57,7 @@ use_math: true
     </tr>
 </table>
 
+## 2. Client/Server 서브시스템 구조
 ### 2) UC 패키징
 - 각 Concrete Use Case는 Client UC와 Server UC의 쌍으로 패키징한다
 - Client UC와 Server UC는 «include» 관계로 연결하고, Client UC가 Server UC를 호출한다
