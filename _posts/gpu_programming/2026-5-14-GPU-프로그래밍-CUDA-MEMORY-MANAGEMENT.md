@@ -131,8 +131,66 @@ Unified Virtual Address를 기반으로 만들어진 기술로 cudaMallocManaged
 시스템이 데이터가 필요한 시점에 호스트와 디바이스 사이에서 메모리 페이지를 자동으로 이동(On-demand migration)시킨다.
 개발자가 명시적으로 cudaMemcpy를 호출할 필요가 없어 프로그래밍 모델이 매우 단순해지며 효율적인 메모리 활용이 가능하다.
 
-> ※ 추가 업데이트 및 검증 예정이다.
-{: .prompt-tip }
+### ※ Unified Memory 사용 방식
+Unified memory가 아니라면 CPU와 GPU에 각각 별도의 데이터를 할당해주어야한다.   
+명시적으로 이동시켜야하니 당연하다면 당연한 것인데, Unified Memory의 경우 이러한 명시적인 이동이 없기 때문에 코드가 좀 더 간결하다.   
+
+아래의 코드는 A,B라는 크기 32의 INT 배열 둘을 더해서 C 배열에 넣는 코드로 Unified Memory 방식을 사용하지 않은 CUDA 코드이다.   
+편의상 예외처리 코드나 상태 체크 코드, 헤더는 제외했다.
+```cuda
+// ... 헤더 및 vectorAdd 커널 코드 생략
+int main() {
+  int * h_A = (int*)malloc(4 * sizeof(int));
+  int * h_B = (int*)malloc(4 * sizeof(int));
+  int * h_C = (int*)malloc(4 * sizeof(int));
+  // host memory 배열 초기화 코드 생략
+  int * d_A = NULL;
+  int * d_B = NULL;
+  int * d_C = NULL;
+  
+  // GPU에 메모리 할당
+  cudaMalloc((void**)&d_A, 4 * sizeof(int))
+  cudaMalloc((void**)&d_B, 4 * sizeof(int))
+  cudaMalloc((void**)&d_C, 4 * sizeof(int))
+  
+  // host에서 GPU 데이터 이관
+  cudaMemcpy(d_A, h_A, 4 * sizeof(int), cudaMemcpyHostToDevice);
+  cudaMemcpy(d_B, h_B, 4 * sizeof(int), cudaMemcpyHostToDevice);
+  
+  // GPU에서 연산
+  vectorAdd << < 1, 4 >> > (d_A, d_B, d_C, 4);
+  
+  // GPU에서 CPU로 결과 이관
+  cudaMemcpy(h_C, d_C, 4 * sizeof(int), cudaMemcpyDeviceToHost);
+  // .. 나머지 생략
+}
+```
+
+위 코드를 Unified Memory를 사용하는 코드로 바꾸면 아래와 같이 변경된다.
+
+```cuda
+// ... 헤더 및 vectorAdd 커널 코드 생략
+int main() {
+  int * A = NULL;
+  int * B = NULL;
+  int * C = NULL;
+  
+  // A,B,C 배열 초기화 코드 생략
+    
+  // GPU에 메모리 할당
+  cudaMallocManaged((void**)&A, 4 * sizeof(int))
+  cudaMallocManaged((void**)&B, 4 * sizeof(int))
+  cudaMallocManaged((void**)&C, 4 * sizeof(int))
+  
+  // GPU에서 연산
+  vectorAdd << < 1, 4 >> > (A, B, C, 4);
+  
+  // .. 나머지 생략
+}
+```
+
+위에서 이전 코드와 비교해보면 알겠지만 HOST 메모리 따로 GPU 메모리 따로 할당을 요청하는 부분이 사라지고 cudaMallocManaged로 통합되었다.   
+이후 GPU와 CPU로 데이터 이동은 드라이버에서 자동으로 해주기 때문에 신경쓸거 없이 바로 변수를 Kernel로 넘겨서 연산하면 된다.
 
 # 참고자료
 - 서강대학교 박성용 교수님 강의자료 - 병렬 분산 컴퓨팅
