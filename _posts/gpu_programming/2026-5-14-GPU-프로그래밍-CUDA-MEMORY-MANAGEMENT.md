@@ -52,7 +52,7 @@ cudaMalloc과 cudaFree를 통해 동적으로 할당 및 해제하며, 데이터
 동일한 뱅크의 서로 다른 주소에 동시에 접근하려 할 때 발생하는 문제가 바로 Bank conflict이다.
 접근 요청이 직렬화(Serialization)되어 메모리 성능이 급격히 저하되는 것이다.
 
-![img.png](/assets/blog/gpu/cuda_memory_management/img.png)
+![img.png](/assets/blog/gpu/cuda_memory_management/img_2.png)
 
 Bank에서 데이터를 가져오는데 1 cycle이 걸린다고 하면 동일한 Bank에서 순차적으로 데이터를 N개 가져오려면 N cycle이 걸린다.   
 즉, 직렬화된 만큼 가져오는 시간이 느려지는 것이다.
