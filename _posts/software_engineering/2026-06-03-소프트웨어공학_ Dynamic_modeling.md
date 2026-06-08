@@ -96,6 +96,10 @@ ex) 도서관 대여 시스템에서 도서관 카드로 Member 정보를 가져
 - A3
 - A3a
 
+ex) 도서관 대여 시스템에서 도서관 카드로 Member 정보를 가져오는 과정을 Sequence Diagram으로 그리면 아래와 같다.
+
+![img_1.png](/assets/blog/software_engineering/dynamic_modeling/img_1.png)
+
 ### 2) 메세지 순서 설명법
 - 오브젝트가 유즈케이스에 어떻게 구성되는지 설명한다.
   - 서술적 설명
@@ -152,8 +156,9 @@ ex) 도서관 대여 시스템에서 도서관 카드로 Member 정보를 가져
 - 제어 객체가 상태차트를 실행한다.
 - 객체 협업 다이어그램과 상태차트가 일관될 때까지 반복적으로 수정한다.
 
-> ※ 추가 업데이트 및 검증 예정이다.
-{: .prompt-tip }
+ex) 옛날 집 전화에 대해서 상태 차트를 그리면 아래와 같다.
+
+![img_2.png](/assets/blog/software_engineering/dynamic_modeling/img_2.png)
 
 # 참고 자료
 - 서강대학교 박수용 교수님 강의자료 - 소프트웨어 공학
