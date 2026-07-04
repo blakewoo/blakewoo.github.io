@@ -16,7 +16,7 @@ use_math: true
 
 이번 시간에는 VectorDB를 테스트해보기 위한 Dataset들에 대해 알아보겠다.
 
-## 2. Vector 데이터 구조
+## 2. 기 임베딩 된 Vector 데이터셋의 구조
 크게는 두 가지로 많이들 사용되는 것 같다.   
 fvecs와 bvecs이다.
 
@@ -118,6 +118,142 @@ Bing 검색 쿼리를 Turing AGI v5 인코더로 처리하였음.
 #### c. 규모
 벡터로 표현한 10억 개의 벡터
 
+## 3. Beir Dataset
+21년도에 나온 논문에 포함된 Beir Dataset이다. Vector 검색 논문에서는 매우 많이 쓰는 일반적인 데이터셋이다.   
+BEIR은 다양한 정보 검색(IR) 작업을 포함하는 heterogeneous 한 벤치마크이며 또한, 벤치마크 내에서 자연어 처리(NLP) 기반 검색 모델을 평가하기 위한
+공통적이고 간편한 프레임워크를 제공한다고 되어있다.
+
+실제 데이터셋은 [github 사이트](https://github.com/beir-cellar/beir) 에서 받을 수 있으며 아예 Python 패키지로 만들어져있기도 해서
+제공하는 패키지에 데이터셋 이름만 입력하면 해당 데이터셋을 받아주기까지한다.
+
+각 데이터 셋의 이름과 간단한 설명은 아래와 같다.
+
+<table class="html-table-editor-output">
+  <thead>
+    <tr>
+      <th>Dataset 이름</th>
+      <th>Queries 개수</th>
+      <th>Corpus 개수</th>
+      <th>설명</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>MSMARCO</td>
+      <td>6,980</td>
+      <td>8.84M</td>
+      <td>웹 검색 질의와 문서로 구성된 대규모 일반 도메인 retrieval 데이터셋</td>
+    </tr>
+    <tr>
+      <td>TREC-COVID</td>
+      <td>50</td>
+      <td>171K</td>
+      <td>COVID-19 관련 논문 검색을 위한 생의학 정보검색 데이터셋</td>
+    </tr>
+    <tr>
+      <td>NFCorpus</td>
+      <td>323</td>
+      <td>3.6K</td>
+      <td>영양,건강,의학 중심의 소규모 전문 도메인 retrieval 데이터셋</td>
+    </tr>
+    <tr>
+      <td>BioASQ</td>
+      <td>500</td>
+      <td>14.91M</td>
+      <td>생의학 질문응답과 문헌 검색을 평가하는 의료 도메인 데이터셋</td>
+    </tr>
+    <tr>
+      <td>NQ</td>
+      <td>3,452</td>
+      <td>2.68M</td>
+      <td>실제 사용자 질문에 가까운 Natural Questions 기반 위키피디아 검색 데이터셋</td>
+    </tr>
+    <tr>
+      <td>HotpotQA</td>
+      <td>7,405</td>
+      <td>5.23M</td>
+      <td>여러 문서를 함께 찾아야 답할 수 있는 multi-hop QA 검색 데이터셋</td>
+    </tr>
+    <tr>
+      <td>FiQA-2018</td>
+      <td>648</td>
+      <td>57K</td>
+      <td>금융 뉴스와 투자 관련 질의를 다루는 금융 도메인 검색 데이터셋</td>
+    </tr>
+    <tr>
+      <td>Signal-1M(RT)</td>
+      <td>97</td>
+      <td>2.86M</td>
+      <td>트윗(짧은 소셜 미디어 텍스트) 검색을 위한 데이터셋</td>
+    </tr>
+    <tr>
+      <td>TREC-NEWS</td>
+      <td>57</td>
+      <td>595K</td>
+      <td>뉴스 기사 검색 성능을 평가하는 뉴스 도메인 데이터셋</td>
+    </tr>
+    <tr>
+      <td>Robust04</td>
+      <td>249</td>
+      <td>528K</td>
+      <td>어떤 주장에 대한 반대 논거를 찾는 argument retrieval 데이터셋</td>
+    </tr>
+    <tr>
+      <td>ArguAna</td>
+      <td>1,406</td>
+      <td>8.67K</td>
+      <td>주장/반박 중심의 논증 검색을 평가하는 argument retrieval 데이터셋</td>
+    </tr>
+    <tr>
+      <td>Touche-2020</td>
+      <td>49</td>
+      <td>382K</td>
+      <td>주장/반박 중심의 논증 검색을 평가하는 argument retrieval 데이터셋</td>
+    </tr>
+    <tr>
+      <td>CQADupstack</td>
+      <td>13,145</td>
+      <td>457K</td>
+      <td>CQA 포럼에서 의미가 같은 중복 질문을 찾는 데이터셋</td>
+    </tr>
+    <tr>
+      <td>Quora</td>
+      <td>10,000</td>
+      <td>523K</td>
+      <td>Quora 질문 쌍에서 중복 질문을 판별하는 데이터셋</td>
+    </tr>
+    <tr>
+      <td>DBPedia</td>
+      <td>400</td>
+      <td>4.63M</td>
+      <td>위키 기반 지식베이스에서 엔티티를 검색하는 entity retrieval 데이터셋</td>
+    </tr>
+    <tr>
+      <td>SCIDOCS</td>
+      <td>1,000</td>
+      <td>25K</td>
+      <td>인용 관계가 중요한 과학 논문 검색 및 citation prediction 데이터셋</td>
+    </tr>
+    <tr>
+      <td>FEVER</td>
+      <td>6,666</td>
+      <td>5.42M</td>
+      <td>주장(claim)을 근거 문서로 검증하는 fact verification 데이터셋</td>
+    </tr>
+    <tr>
+      <td>Climate-FEVER</td>
+      <td>1,535</td>
+      <td>5.42M</td>
+      <td>기후 변화 관련 주장 검증을 위한 fact verification 데이터셋</td>
+    </tr>
+    <tr>
+      <td>SciFact</td>
+      <td>300</td>
+      <td>5K</td>
+      <td>과학 논문 근거를 바탕으로 주장 검증을 수행하는 데이터셋</td>
+    </tr>
+  </tbody>
+</table>
 
 
 > ※ 추가 업데이트 및 검증 예정이고, 아직 완벽하지 않으니 참고만 바란다.
@@ -130,3 +266,5 @@ Bing 검색 쿼리를 Turing AGI v5 인코더로 처리하였음.
 - Siddharth Gollapudi, Neel Karia, Varun Sivashankar, Ravishankar Krishnaswamy, Nikit Begwani, Swapnil Raz, Yiyong Lin, Yin Zhang, Neelam Mahapatro, Premkumar Srinivasan, Amit Singh, and Harsha Vardhan Simhadri. 2023. Filtered-DiskANN: Graph Algorithms for Approximate Nearest Neighbor Search with Filters. In Proceedings of the ACM Web Conference 2023 (WWW '23). Association for Computing Machinery, New York, NY, USA, 3406–3416. https://doi.org/10.1145/3543507.3583552
 - [텐서플로우 - sift1m](https://www.tensorflow.org/datasets/catalog/sift1m?utm_source=chatgpt.com&hl=ko)
 - [Learning2hash.github.io - Microsoft Turing-ANNS-1B](https://learning2hash.github.io/publications/microsoftturinganns1B/?utm_source=chatgpt.com)
+- Nandan Thakur, , Nils Reimers, Andreas Ruckle, Abhishek Srivastava, and Iryna Gurevych. "BEIR: A Heterogeneous Benchmark for Zero-shot Evaluation of Information Retrieval Models." . In Thirty-fifth Conference on Neural Information Processing Systems Datasets and Benchmarks Track (Round 2).2021.
+
