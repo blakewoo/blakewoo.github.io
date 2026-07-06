@@ -79,9 +79,6 @@ Faiss와 같은 라이브러리에서 제공하는 [IVF](https://blakewoo.github
 {: .prompt-tip }
 
 
-> ※ 추가 업데이트 예정이다.
-{: .prompt-tip }
-
 # 참고문헌
 - Omar Khattab, , and Matei Zaharia. "ColBERT: Efficient and Effective Passage Search via Contextualized Late Interaction over BERT." (2020).
 
