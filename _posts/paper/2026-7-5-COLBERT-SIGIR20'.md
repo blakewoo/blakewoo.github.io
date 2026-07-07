@@ -21,7 +21,9 @@ BM25 같은 전통 검색은 빠르다. 하지만 단어가 정확히 겹치지 
 이러한 문제를 해결하기 위해 Bert를 이용해서 검색하는 방식 역시 등장했다.
 BERT 기반 랭커는 쿼리와 문서를 함께 입력한다. (아래 참조)
 
-```[CLS] query [SEP] document [SEP] → BERT 모델 → relevance score```
+```
+[CLS] query [SEP] document [SEP] → BERT 모델 → relevance score
+```
 
 이 방식은 성능은 좋지만 매우 느리다. 문서 1000개를 reranking하려면 쿼리 하나에 대해 BERT를 1000번 실행해야 한다.
 논문에서는 BERT 기반 랭커가 기존 모델보다 계산량이 수백~수천 배 커질 수 있다.
@@ -38,7 +40,10 @@ ColBERT는 이 문제를 해결하기 위해 등장했다.
 이것을 query augmentation이라고 부른다.
 
 예를 들어 실제 쿼리가 짧으면 다음과 같이 된다.
-```[CLS] [Q] what is colbert [MASK] [MASK] ...```
+
+```
+[CLS] [Q] what is colbert [MASK] [MASK] ...
+```
 
 이 [MASK] 위치도 BERT를 통과하면서 쿼리 문맥에 맞는 표현을 만들 수 있다.
 논문에서는 이것이 일종의 부드러운 query expansion 역할을 한다고 설명한다.
@@ -46,7 +51,8 @@ ColBERT는 이 문제를 해결하기 위해 등장했다.
 ### 2.2 Document Encoder
 문서도 BERT로 인코딩한다.
 
-문서 앞에는 [D]라는 특수 토큰을 붙인다.
+문서 앞에는 [D]라는 특수 토큰을 
+
 ```
 [CLS] [D] document tokens ...
 ```
@@ -61,7 +67,9 @@ BERT의 기본 hidden dimension은 보통 768이다.
 그래서 BERT 출력 뒤에 linear layer를 붙여서 더 작은 차원으로 줄인다.
 논문 실험에서는 보통 128차원을 사용한다.
 
-```BERT output 768-dim → Linear layer → 128-dim```
+```
+BERT output 768-dim → Linear layer → 128-dim
+```
 
 그 후 벡터를 L2 normalize한다. 이렇게 하면 dot product가 cosine similarity와 같아진다.
 
