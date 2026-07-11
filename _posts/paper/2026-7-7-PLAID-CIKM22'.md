@@ -9,6 +9,10 @@ use_math: true
 ---
 
 # PLAID: An Efficient Engine for Late Interaction Retrieval
+
+> ※ 본 논문을 읽기 전에 [ColBERTv2](https://blakewoo.github.io/posts/COLBERTv2-NAACL22'/) 논문을 읽고 오는게 좋다.
+{: .prompt-tip }
+
 COLBERTv2 논문의 파생형이다. ColBERTv2와 동일한 저자가 좀 더 나은 형태의 방식을 제시한 것이다.      
 기본적인 골자는 다르지 않다. 후보 문서를 많이 가져온 뒤에 각 후보 문서의 잔차를 복원하고 full maxsim으로 계산하는 기존 방식과는 달리    
 Centroid ID 만으로 여러 단계의 비용이 싼 필터링을 수행한 뒤 남은 정말 유망한 후보군만 잔차 복원을 하여 Maxsim을 수행하는 방식이다.   

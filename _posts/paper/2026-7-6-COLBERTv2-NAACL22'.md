@@ -9,6 +9,10 @@ use_math: true
 ---
 
 # COLBERTv2: Effective and Efficient Retrieval via Lightweight Late Interaction
+
+> ※ 본 논문을 읽기 전에 [ColBERT](https://blakewoo.github.io/posts/COLBERT-SIGIR20'/) 논문을 읽고 오는게 좋다.
+{: .prompt-tip }
+
 COLBERT 논문의 파생형이다. 동일한 저자와 다른 공저자가 하나 더 붙어서 좀 더 나은 형태의 방식을 제시한 것이다.   
 본래는 Model에 대한 개선과 LoTTE (Long-Tail Topic-stratified Evaluation for IR), 그러니까
 지식 기반(Knowledge base) 외부에 존재하는 전문적이고 희소한(Long-tail) 주제들을 다루는 데이터셋까지
