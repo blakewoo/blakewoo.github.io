@@ -17,10 +17,11 @@ use_math: true
 Query 역시 Single vector로 바뀌어 앞서 포스팅했던 ANN 방법대로 검색하는 것이다.
 
 하지만 이렇게 Document를 한 개의 Vector로 바꾸니 의미 손실이 일어났다. 그래서 나온게 Multi vector retrieval 방식이다.
-가장 처음 언급한 ColBERT라는 논문이다. 해당 논문에서 제시한 방식은 간단하다. BM25라는 전통적인 검색 시스템이 상위 K를 뽑은 뒤
-MaxSim(Max similarity)를 구하여 나온 score 대로 재 순위화 하는 것이다.
+가장 처음 언급한 [ColBERT](https://blakewoo.github.io/posts/COLBERT-SIGIR20'/) 라는 논문이다. 해당 논문에서 제시한 방식은 2가지이다.
+BM25라는 전통적인 검색 시스템이 상위 K를 뽑은 뒤 MaxSim(Max similarity)를 구하여 나온 score 대로 재 순위화 하거나
+Faiss와 같은 라이브러리에서 제공하는 IVF 방식으로 1차 후보군을 뽑은 뒤 score 대로 재 순위화를 하는 것이다.
 
-위와 같은 방식을 late interaction이라고 하는데, 이게 현재 Multi vector retrieval의 전형적인 방식이 되었으며
+위와 같이 1차 후보군 + 재순위화하는 방식을 late interaction이라고 하는데, 이게 현재 Multi vector retrieval의 전형적인 방식이 되었으며
 BM25 방식을 사용하던 1차 후보 추출기를 다른 Single vector 검색 방식으로 대체하거나 다른 알고리즘을 사용하는 방식으로 여러가지 Variation 이 생겼지만
 기본적인 Rerank 방식이 달라지진 않았다.
 
