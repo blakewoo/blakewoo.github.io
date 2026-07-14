@@ -1,7 +1,7 @@
 ---
 title: SIGIR26' - GIGP+, A CPU-GPU Co-Processing Engine for Multi-Vector Retrieval
 author: blakewoo
-date: 2026-7-13 22:00:00 +0900
+date: 2026-7-14 22:00:00 +0900
 categories: [Paper]
 tags: [Paper, Vector Database] 
 render_with_liquid: false
@@ -37,18 +37,78 @@ Centroid들로 ip-NSW를 만들지 않고, GPU에서 IVF 파일을 한번에 가
 전체적인 검색 절차는 아래와 같다.
 
 ```
-1. query vector q와 centroid C의 score q^T C 계산
-2. score 높은 centroid들을 선택
-3. 선택된 centroid들의 IVF list를 병렬 fetch
-4. (doc_id, <c, q>) tuple array T[q] 생성
-5. score group별로 tuple을 재배열
-6. GPU kernel에서 document-query별 AtomicMax
-7. query vector별 max score를 합산해 document score 생성
-8. top-φref candidate document 선택
-9. candidate ID를 host로 보내 VQ/SQ code fetch
-10. candidate document vector를 복원
-11. full MaxSim rerank
+1. query vector q와 centroid C의 score q^T C 계산 및 score 높은 centroid들을 K개 선택
+2. 선택된 centroid들의 IVF list를 병렬 fetch
+3. (doc_id, <c, q>) tuple array T[q] 생성
+4. score group별로 tuple을 재배열
+5. GPU kernel에서 document-query별 AtomicMax
+6. query vector별 max score를 합산해 document score 생성
+7. top-φref candidate document 선택
+8. candidate ID를 host로 보내 VQ/SQ code fetch
+9. candidate document vector를 복원
+10. full MaxSim rerank
 ```
+
+위 절차를 세세하게 하나씩 설명해보겠다.
+
+#### 1) query vector q와 centroid C의 score q^T C 계산 및 score 높은 centroid들을 선택
+Query를 Multi-vector로 인코딩한다. 그러면 Query는 다수의 벡터가 된다. 이 벡터 하나를 q라고 하겠다.   
+GIGP+ 는 이전의 IGP와 동일하게 각 q에 대해서 비슷한 것들을 탐색하는 것이다.
+
+각 q에 대해서 모든 Centroid들과의 score를 구하고 내림차순으로 정렬한다. 이후 K개 만큼 선정한다.   
+
+#### 2) 선택된 centroid들의 IVF list를 병렬 fetch
+선택된 centroid들의 IVF list 길이를 이용해 offset array Δ를 계산한다.
+여기서 offset array Δ란 아래와 같다.
+
+아래와 같은 Centroid가 있다고 할때
+```
+c(1), c(2), c(3)
+```
+
+각 IVF LIST의 길이가 아래와 같다면
+```
+|IVF[c(1)]| = 3
+|IVF[c(2)]| = 5
+|IVF[c(3)]| = 2
+```
+
+각 Cetroid와 Query가 score를 문서에 대해서 표현(A array로 표현)하기 위해서는 아래와 같은 길이가 필요하다.
+```
+A length = 3 + 5 + 2 = 10
+```
+
+이를 표현하는 방식은 각 Centroid가 1차원 배열의 어디부터 시작하는지 offset을 적어두는 것으로 아래와 같이 표현된다.
+```
+Δ = [0, 3, 8]
+```
+
+Δ를 shared memory에 cache함으로써 빠른 접근이 가능하게 한다.
+
+이후 각 centroid c(i)에 대해 IVF[c(i)]를 병렬로 읽은 뒤에 tuple array A에 저장한다.
+
+```
+A[Δ[i] + j] = (IVF[c(i)][j], <c(i), q>)
+```
+
+이후 A의 앞 n개를 반환한다.
+
+#### 3) (doc_id, <c, q>) tuple array T[q] 생성
+query는 여러 vector로 구성되므로, PrepareTupleArray(Q, φcand)가 각 query vector마다 2)번 절차를 수행한다.   
+이후 결과는 아래와 같은 tuple로 나타난다.
+
+```
+T[q1] = [(doc_id, <c, q1>), ...]
+T[q2] = [(doc_id, <c, q2>), ...]
+...
+T[qm] = [(doc_id, <c, qm>), ...]
+```
+
+#### 4) score group별로 tuple을 재배열
+#### 5) GPU kernel에서 document-query별 AtomicMax
+#### 6) query vector별 max score를 합산해 document score 생성
+#### 7) top-φref candidate document 선택
+#### 8) 1차 후보군 잔차 복구 및 GPU Memory로 전송 및 Rerank
 
 > ※ 추가 업데이트 예정이다.
 {: .prompt-tip }
