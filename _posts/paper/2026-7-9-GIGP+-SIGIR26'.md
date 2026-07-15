@@ -44,7 +44,7 @@ Centroid들로 ip-NSW를 만들지 않고, GPU에서 IVF 파일을 한번에 가
 5. GPU kernel에서 document-query별 AtomicMax
 6. query vector별 max score를 합산해 document score 생성
 7. top-φref candidate document 선택
-8. candidate ID를 host로 보내 VQ/SQ code fetch
+8. candidate ID를 host로 보내 VQ/SQ code를 GPU Memory로 fetch
 9. candidate document vector를 복원
 10. full MaxSim rerank
 ```
@@ -95,7 +95,7 @@ A[Δ[i] + j] = (IVF[c(i)][j], <c(i), q>)
 
 #### 3) (doc_id, <c, q>) tuple array T[q] 생성
 query는 여러 vector로 구성되므로, PrepareTupleArray(Q, φcand)가 각 query vector마다 2)번 절차를 수행한다.   
-이후 결과는 아래와 같은 tuple로 나타난다.
+이후 결과는 아래와 같은 tuple로 나타난다. 각 Tuple은 내림차순으로 정렬되어있다.
 
 ```
 T[q1] = [(doc_id, <c, q1>), ...]
@@ -105,10 +105,29 @@ T[qm] = [(doc_id, <c, qm>), ...]
 ```
 
 #### 4) score group별로 tuple을 재배열
-#### 5) GPU kernel에서 document-query별 AtomicMax
-#### 6) query vector별 max score를 합산해 document score 생성
-#### 7) top-φref candidate document 선택
-#### 8) 1차 후보군 잔차 복구 및 GPU Memory로 전송 및 Rerank
+GPU의 병렬성을 살리기 위해서는 적절한 크기로 연산을 자를 필요가 있다.   
+특히 GPU에 포함된 Shared memory 사이즈를 넘는 데이터로 연산시 VRAM에서 데이터를 가져오면셔 지연시간이 발생하므로   
+한번에 작업할 양을 Shared memory에 밀어넣는게 중요하다.   
+
+이를 살리기 위해 논문에서 언급하는게 score group으로 문서의 ID를 단위로 한번에 연산할 양 만큼을 잘라두는 것이다.   
+이렇게 Shared Memory에 올라갈만큼의 데이터를 잘라두먼 VRAM에서 데이터를 가져올 일이 줄어들어 병렬성을 높일 수 있다.   
+이 score group 별로 tuple을 재배열해서 Shared memory에 다 들어오게 만들어서 한번에 연산이 되게끔 하게 하는 것이다.
+
+#### 5) GPU kernel에서 document-query별 AtomicMax 
+이전의 IGP의 경우에는 가장 먼저 확인한 값이 가장 큰 값임이 보장된 구조에 순서가 보장되는 싱글 스레드 연산이었기때문에
+isSeen과 같이 이미 확인한 문서라면 넘겨버리면 되었지만 GPU의 경우에는 순서가 보장되지 않는 병렬 연산이기 때문에 IGP와 동일한
+방식은 사용할 수 없다. 때문에 GPU에서 문서-query score 중에서 Max 값을 취해야한다. 
+여기서 문서는 정말 문서 벡터가 아닌 문서에 달려있는 Centroid 값과 query의 유사도 score를 구하고 그 중에서 Max 값을 취하는 것이다.
+이렇게 Max 값을 구하는 과정에서 공유 메모리에서 race condition이 발생하면 안되므로 원자적인 연산(AtomicMax)를 통해 최대값을 구한다.
+
+#### 6) query vector별 max score를 합산해 document score 생성 및 top-φref candidate document 선택
+GPU Kernel에서 구해진 최대 값을 합산하여 각 문서별 유사도 score를 구한다. 이후 이 Score를 기준으로 내림차순으로
+정렬하여 상위 φref개 만큼의 문서 ID를 Host로 전달한다.
+
+#### 7) 1차 후보군 잔차 복구를 위한 코드 GPU Memory로 전송 및 잔차 복구 후 Rerank
+Host에서는 상위 φref개의 문서 ID를 받은 뒤에 Memory에서 해당 문서를 잔차 복구할 때 필요한 코드 위치를 찾아서
+GPU Memory로 전달한다. 이후 GPU에서는 받은 잔차 복구 코드를 이용하여 문서를 잔차 복구하고 
+Maxsim 연산을 이용해서 full-rerank를 한 뒤에 나온 score를 내림차순으로 정렬하여 K개를 반환한다.
 
 > ※ 추가 업데이트 예정이다.
 {: .prompt-tip }
