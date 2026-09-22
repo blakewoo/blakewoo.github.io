@@ -1,7 +1,7 @@
 ---
 title: HTTP와 HTTPS 구조
 author: blakewoo
-date: 2026-09-21 22:00:00 +0900
+date: 2026-09-22 22:00:00 +0900
 categories: [web]
 tags: [web, http, https]
 render_with_liquid: false
@@ -32,7 +32,7 @@ HTTP나 HTTPS는 많이 들어봤지만 설명하라고 하면 굉장히 말이 
 
 연결이 맺어지면 첫번째로 OPTION이라는 메소드를 이용해서 해당요청에 대해 어떤 메소드를 사용할 수 있는지 받아온다.
 그 이후로는 OPTION에서 받아온 가능 한 메소드 리스트 중에 가능한 메소드로 특정 리소스에 요청을 보낼 수 있다.
-이 메소드는 REST API 포스팅을 참고하라.
+이 메소드는 [REST API 포스팅](https://blakewoo.github.io/posts/REST-API/) 을 참고하라.
 
 기본적으로 HTTP 요청은 아래와 같은 구조를 가진다.
 
@@ -67,7 +67,73 @@ HTTP나 HTTPS는 많이 들어봤지만 설명하라고 하면 굉장히 말이 
 
 ![img_2.png](/assets/blog/web/http&https/img_3.png)
 
-HTTPS의 큰 그림은 위와 같다. 기본적으로 DNS, IP, TCP 연결을 위한 Handshake까지는 동일하나, TLS 통신을 위한 핸드세이크가 추가되었다.   
+HTTPS의 큰 그림은 위와 같다. 기본적으로 DNS, IP, TCP 연결을 위한 Handshake와 그 뒤에 HTTP과 같은 통신은 동일하나, TLS 통신을 위한 핸드세이크가 추가되었다. 
+TCP 통신이 연결되면 아래의 절차에 따라 TLS가 이루어진다.
+
+### 1) TLS 절차
+#### a. ClientHello
+클라이언트가 서버에 아래와 같은 정보를 보내서 어떻게 TLS를 맺을지 정한다.
+이 정보들은 하나의 항목에 다수개를 보낼 수 도 있는데 가령 "cipher_suites"의 경우에는 가능한 암호화 방식 후보군들을 보내는 방식이다.
+
+| 정보      | 질문                | ClientHello 항목                  |
+| ------- | ----------------- | ------------------------------- |
+| TLS 버전  | 어떤 TLS를 사용할까?     | `supported_versions`            |
+| 대칭 암호   | 데이터를 어떻게 암호화할까?   | `cipher_suites`                 |
+| 키 교환    | 공유 비밀을 어떻게 만들까?   | `supported_groups`, `key_share` |
+| 인증      | 어떤 서명을 검증할 수 있나?  | `signature_algorithms`          |
+| 서버 선택   | 어느 웹사이트에 접속하나?    | `server_name (SNI)`             |
+| 응용 프로토콜 | HTTP/1.1? HTTP/2? | `ALPN`                          |
+| 세션 재사용  | 이전 연결을 재사용할까?     | `pre_shared_key`                |
+| 0-RTT   | 바로 데이터를 보낼까?      | `early_data`                    |
+
+#### b. ServerHello
+서버에서는 ClientHello에서 보낸 후보중 대체로 하나만 선택해서 보낸다.
+
+| ServerHello 항목              | 의미                               | TLS 1.3에서의 역할            | 예                        |
+| --------------------------- | -------------------------------- | ------------------------ | ------------------------ |
+| `legacy_version`            | 과거 TLS 버전 필드                     | 호환성을 위해 항상 `0x0303`      | TLS 1.2 값                |
+| `random`                    | 서버가 생성한 32바이트 값                  | 핸드셰이크 및 downgrade 보호에 사용 | 32-byte random           |
+| `legacy_session_id_echo`    | ClientHello의 Session ID를 그대로 돌려줌 | 구형 middlebox 호환성         | Client 값 그대로             |
+| `cipher_suite`              | 사용할 Cipher Suite                 | 클라이언트가 제시한 목록 중 하나 선택    | `TLS_AES_128_GCM_SHA256` |
+| `legacy_compression_method` | 과거 Compression 방식                | TLS 1.3에서는 반드시 `0`       | `0x00`                   |
+| `supported_versions`        | 실제 선택된 TLS 버전                    | TLS 1.3 선택을 명확히 표시       | `TLS 1.3`                |
+| `key_share`                 | 서버의 Key Exchange 공개 값            | ECDHE Shared Secret 생성   | X25519 public key        |
+| `pre_shared_key`            | 선택한 PSK 표시                       | Session Resumption 시 사용  | selected identity        |
+
+#### c. 암호화
+##### a) 초기 암호화
+처음 ClientHello를 보낼때 클라이언트에서는 ECDHE 키 쌍을 만든다. 이 키 쌍은 Private와 Public으로 되어있는데
+public만 서버로 보낸다.
+서버측 역시 ECDHE 키 쌍을 만들면 public만 클라이언트로 보낸다.
+
+이후 서로 갖고 있는 private과 받은 public 키 값으로 ECDH를 이용해서 공유 비밀키(Shared Secret Key)를 만든다.
+서로 다른 값으로 계산하지만 결과는 동일한 값으로 나온다.
+
+이후 이 키를 가지고 양방향 암호키로 쓰진 않고 HKDF라는 Key Derivation Function을 쓴다.
+아까 ECDHE로 만든 공유 비밀키로 Client Handshake Traffic Secret, Server Handshake Traffic Secret를 만든다음에
+Handshake Traffic Secret으로 다시 암호화키와 IV 값을 만든다.
+
+이후 진행되는 값은 이 handshake traffic secret값으로 암호화되어 서로 전송한다.
+
+##### b) 인증서 체크
+서버가 자신의 인증서를 보내게 되는데 보통 Certificate Chain 구조이며, 아래의 내용을 확인한다.
+
+```
+① 신뢰 가능한 CA가 발급했는가?
+
+② Certificate Chain이 유효한가?
+
+③ 인증서가 만료되지 않았는가?
+
+④ 내가 접속한 도메인과
+   인증서의 이름이 일치하는가?
+
+⑤ 인증서 사용 목적 등이 적절한가?
+```
+
+##### c) 암호화 통신
+인증서까지 모두 체크하면 Application Traffic Secret가 이전의 공유 비밀키에서 생성되며 클라이언트는 Client Application Key로
+서버는 Server Application Key로 암호화하여 전송하게 된다.
 
 > ※ 추가 업데이트 예정이다.
 {: .prompt-tip }
