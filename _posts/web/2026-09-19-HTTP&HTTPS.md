@@ -132,8 +132,70 @@ Handshake Traffic Secret으로 다시 암호화키와 IV 값을 만든다.
 ```
 
 ##### c) 암호화 통신
-인증서까지 모두 체크하면 Application Traffic Secret가 이전의 공유 비밀키에서 생성되며 클라이언트는 Client Application Key로
-서버는 Server Application Key로 암호화하여 전송하게 된다.
+인증서까지 모두 체크하면 Application Traffic Secret가 이전의 공유 비밀키에서 생성되며 클라이언트 -> 서버로 가는 메세지는 Server Application Key로
+서버 -> 클라이언트로 가는 메세지는 Client Application Key로 암호화하여 전송하게 된다.   
+이 경우 클라이언트와 서버는 양쪽 키를 모두 가지고 있으며, 대칭키 암호화이기 때문에 전송과 수신간에 각각 전용 키로 암복호화를 한다.
+
+이후 Header와 Body를 모두 암호화하며 전송한다.   
+만약 HTTP 요청이 아래와 같다고 가정하겠다.
+
+```
+POST /api/users HTTP/1.1
+Host: example.com
+Authorization: Bearer abc123
+Content-Type: application/json
+
+{
+  "name": "Kim",
+  "password": "1234"
+}
+```
+
+위 내용이 통째로 암호화 되며 이 겉에 붙는 헤더만 평문이다.
+즉, 암호화 안된 부분은 아래와 같고
+```
+Source IP
+Destination IP
+
+Source Port
+Destination Port
+
+패킷 크기
+TLS Record 크기
+
+통신 시간
+통신량
+```
+
+암호화 된 부분은 아래와 같다.
+```
+HTTP URL path
+HTTP Header
+Cookie
+Authorization
+HTTP Body
+```
+
+전체적인 구조는 아래와 같다.
+```
+┌─────────────────────────────┐
+│ Ethernet Header             │ ← 보임
+├─────────────────────────────┤
+│ IP Header                   │ ← 보임
+│ Src IP / Dst IP             │
+├─────────────────────────────┤
+│ TCP Header                  │ ← 보임
+│ Src Port / Dst Port         │
+├─────────────────────────────┤
+│ TLS Record Header           │ ← 보임
+├─────────────────────────────┤
+│ TLS encrypted_record        │ ← 암호화
+│                             │
+│   HTTP Header               │
+│   HTTP Body                 │
+│                             │
+└─────────────────────────────┘
+```
 
 > ※ 추가 업데이트 예정이다.
 {: .prompt-tip }
