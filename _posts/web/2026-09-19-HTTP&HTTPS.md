@@ -1,7 +1,7 @@
 ---
 title: HTTP와 HTTPS 구조
 author: blakewoo
-date: 2026-09-22 22:00:00 +0900
+date: 2026-09-24 22:00:00 +0900
 categories: [web]
 tags: [web, http, https]
 render_with_liquid: false
@@ -130,6 +130,102 @@ Handshake Traffic Secret으로 다시 암호화키와 IV 값을 만든다.
 
 ⑤ 인증서 사용 목적 등이 적절한가?
 ```
+
+위와 같은 내용을 확인하는 절차를 ```http://www.abc.com```이라는 예시를 두고 설명해보겠다.   
+
+```
+사용자:
+https://www.abc.com 접속
+           │
+           ▼
+서버가 Certificate 전송
+           │
+           ▼
+① 인증서 체인 구성
+           │
+           ▼
+② 각 인증서의 CA 서명 검증
+           │
+           ▼
+③ 유효기간 / CA 권한 / Key Usage 등 검증
+           │
+           ▼
+④ Root CA가 내 Trust Store에 있는지 확인
+           │
+           ▼
+⑤ SAN에 www.abc.com이 있는지 확인
+           │
+           ▼
+⑥ 폐기(Revocation) 상태 등 추가 검사
+           │
+           ▼
+⑦ CertificateVerify 검증
+   "서버가 실제 Private Key를 가지고 있는가?"
+           │
+           ▼
+⑧ Finished 검증
+           │
+           ▼
+        TLS 연결 성공
+```
+
+###### A.서버가 Certificate Chain 전송
+서버는 클라이언트에게 Leaf 인증서, Intermediate CA(Certificate Authority, 인증기관) 인증서를 보내는데 Root CA 인증서까지는 일반적으로 보내지 않는다.
+클라이언트는 이미 자신의 Trust Store에 Root CA를 가지고 있기 때문이다.
+
+###### B. 각 인증서의 CA 서명 검증
+각 인증서 안에는 TBSCertificate, Signature 값이 들어있다.
+Leaf 인증서의 TBSCertificate, Signature값을 Intermediate CA의 Public Key로 해당 검증했을때 문제가 없는지는 확인한다.
+
+자세한 절차는 아래와 같다.
+
+```
+Leaf TBSCertificate
+        │
+        ▼
+      Hash
+        │
+        ▼
+       H1
+```
+
+시그니처값을 Intermediate CA의 Public key를 이용해서 검증한다.
+```
+Signature Value
+        +
+Intermediate CA Public Key
+        +
+TBSCertificate
+        │
+        ▼
+ Signature Verification
+        │
+        ▼
+    성공 / 실패
+```
+
+이런 방식을 Root CA까지 반복하면 인증서 체인이 모두 검증된다.
+
+```
+Leaf Certificate
+      │
+      │ Signature 검증
+      │ using Intermediate Public Key
+      ▼
+Intermediate Certificate
+      │
+      │ Signature 검증
+      │ using Root Public Key
+      ▼
+Root CA
+      │
+      ▼
+Trust Store
+```
+
+> ※ 추가 업데이트 예정이다.
+{: .prompt-tip }
+
 
 ##### c) 암호화 통신
 인증서까지 모두 체크하면 Application Traffic Secret가 이전의 공유 비밀키에서 생성되며 클라이언트 -> 서버로 가는 메세지는 Server Application Key로
