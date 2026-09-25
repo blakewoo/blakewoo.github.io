@@ -15,13 +15,13 @@ HTTP나 HTTPS는 많이 들어봤지만 설명하라고 하면 굉장히 말이 
 ## 1. 개요
 앞서 네트워크 포스팅에서 설명했듯이 HTTP와 HTTPS는 응용 계층 프로토콜이다. 이러한 HTTP와 HTTPS 프로토콜의 스택을 그리면 아래와 같다.
 
-![img.png](/assets\blog\web\http&https\img.png)
+![img.png](\assets\blog\web\http&https\img.png)
 
 기본적으로 TCP/IP 위에서 구동되는데 HTTP의 경우에는 TCP/IP 위에서 구동되고 HTTPS는 TLS 위에서 구동된다.   
 위의 그림으로도 어느정도 이해는 가겠지만, 좀 더 세부적으로 알아보도록 하자.
 
 ## 2. HTTP
-![img_1.png](/assets/blog/web/http&https/img_1.png)
+![img_1.png](\assets/blog/web/http&https/img_1.png)
 
 큰 그림은 위의 그림과 같다.   
 기본적으로 IP위에 TCP위에 HTTP가 올라가는거라 TCP의 신뢰성 있는 전송은 기본적으로 깔린 방식이다.    
@@ -36,7 +36,7 @@ HTTP나 HTTPS는 많이 들어봤지만 설명하라고 하면 굉장히 말이 
 
 기본적으로 HTTP 요청은 아래와 같은 구조를 가진다.
 
-![img.png](/assets/blog/web/http&https/img_2.png)
+![img.png](\assets/blog/web/http&https/img_2.png)
 
 위 그림과 같이 시작 라인과 헤더, 바디로 이루어져있다.
 여기서 Body는 POST, PATCH, PUT에서 사용하며 Body는 어떤 타입으로 보내는지 헤더에서 지정한다.
@@ -61,11 +61,45 @@ HTTP나 HTTPS는 많이 들어봤지만 설명하라고 하면 굉장히 말이 
 | `audio/mpeg`                        | MP3           | 오디오            |
 | `video/mp4`                         | MP4           | 동영상            |
 
-위와 같은 구조로 구성된 HTTP 요청은 TCP 패킷으로 나누어서 보내지는데, 최대 패킷 크기를 넘어서면 쪼개져서 전달되게 된다.
+위와 같은 구조로 구성된 HTTP 요청은 도메인은 ascii code로 전송되며, 뒤에 Path 부분은 UTF-8 + Percent Encoding을 처리되어 전송되며 
+헤더 역시 ascii code로 전송되는데 부득이하게 영어가 아닌 경우, 별도의 인코딩 방식에 의해 처리된다.   
+위에서 말한 HTTP Body는 그냥 바이트 배열인데, 앞서 언급한 Content-Type에 따라서 다르게 인코딩하여 전송할 수 있다.   
+
+- ```Content-Type: application/json``` : UTF-8 + Percent Encoding
+- ```application/x-www-form-urlencoded``` : UTF-8 + Percent Encoding
+- ```multipart/form-data``` : raw binary
+
+이후 TCP 패킷으로 나누어서 보내지는데, 최대 패킷 크기를 넘어서면 쪼개져서 전달되게 된다.
+
+### 1) Puny code
+도메인이 한글이면 어떻게 할까? 혹은 영어권이 아닌 다른 나라라면?
+이 경우 puny code라는 알고리즘을 이용해서 ascii 문자열로 변경한다.   
+이렇게 변경하면 모두 ascii 코드로 처리할 수 있기 때문에 편의성이 올라간다.   
+브라우저에서는 변환된 문자열을 역으로 원래 문자열로 변환해서 보여주기 때문에 잘 드러나지 않는 부분이다.   
+변환 방식은 아래와 같다.
+
+"go한글.com" 이라는 도메인이 있다고 가정해보겠다. 이를 puny code 문자열 인코딩하면 아래와 같이 변한다.   
+
+```xn--go-f12i831k.com```
+
+먼저 영어 부분만 떼어 적는다 위 예시의 경우에는 go한글이니 go만 남는다.   
+이후 하이픈(-)을 쓰고, 남은 한글의 위치와 내용을 [puny code 방식](https://www.rfc-editor.org/info/rfc3492/#section-4) 으로 인코딩하여 붙이고 뒤에 ```.com```을 붙이면 된다.
+
+### 2) Content-encoding
+Content-type 과 Content-encoding은 다르다. Content-type은 이 콘텐츠는 어떤 것인가? 라면 Content-encoding은 이 데이터가 어떤 추가 변환을 거쳤는가? 에
+가깝다.
+가령 아래의 경우를 보자.
+
+```
+Content-Type: application/json
+Content-Encoding: gzip
+```
+
+위와 같이 되어있다면 이 Content는 json이지만 gzip으로 압축되어있다라고 알 수 있는 것이다.
 
 ## 3. HTTPS 
 
-![img_2.png](/assets/blog/web/http&https/img_3.png)
+![img_2.png](\assets/blog/web/http&https/img_3.png)
 
 HTTPS의 큰 그림은 위와 같다. 기본적으로 DNS, IP, TCP 연결을 위한 Handshake와 그 뒤에 HTTP과 같은 통신은 동일하나, TLS 통신을 위한 핸드세이크가 추가되었다. 
 TCP 통신이 연결되면 아래의 절차에 따라 TLS가 이루어진다.
@@ -175,7 +209,9 @@ https://www.abc.com 접속
 
 ###### B. 각 인증서의 CA 서명 검증
 각 인증서 안에는 TBSCertificate, Signature 값이 들어있다.
-Leaf 인증서의 TBSCertificate, Signature값을 Intermediate CA의 Public Key로 해당 검증했을때 문제가 없는지는 확인한다.
+하위 인증서 내용(TBSCertificate)으로부터 만든 해시값에 대해 상위 인증서 CA가 자신의 Private Key로 서명한 결과가 Signature인데
+이러한 Signature이 확실한지 알아보기 위해서는 상위 인증서 CA의 Public Key로 해당 값을 돌렸을때 하위 인증서 내용으로
+만든 해시값과 동일한 값이 나온다면 문제가 없는 것이다.
 
 자세한 절차는 아래와 같다.
 
@@ -222,10 +258,6 @@ Root CA
       ▼
 Trust Store
 ```
-
-> ※ 추가 업데이트 예정이다.
-{: .prompt-tip }
-
 
 ##### c) 암호화 통신
 인증서까지 모두 체크하면 Application Traffic Secret가 이전의 공유 비밀키에서 생성되며 클라이언트 -> 서버로 가는 메세지는 Server Application Key로
@@ -299,3 +331,4 @@ HTTP Body
 # 참고문헌
 - [TCP 공식 규격 문서](https://datatracker.ietf.org/doc/html/rfc9293)
 - [HTTP 공통 공식 규격 문서](https://datatracker.ietf.org/doc/html/rfc9110)
+- [Puny code 처리법](https://www.rfc-editor.org/info/rfc3492/#section-4)
