@@ -80,7 +80,9 @@ HTTP나 HTTPS는 많이 들어봤지만 설명하라고 하면 굉장히 말이 
 
 "go한글.com" 이라는 도메인이 있다고 가정해보겠다. 이를 puny code 문자열 인코딩하면 아래와 같이 변한다.   
 
-- xn--go-f12i831k.com
+```
+xn--go-f12i831k.com
+```
 
 먼저 영어 부분만 떼어 적는다 위 예시의 경우에는 go한글이니 go만 남는다.   
 이후 하이픈(-)을 쓰고, 남은 한글의 위치와 내용을 [puny code 방식](https://www.rfc-editor.org/info/rfc3492/#section-4) 으로 인코딩하여 붙이고 뒤에 ```.com```을 붙이면 된다.
