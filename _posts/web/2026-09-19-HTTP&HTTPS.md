@@ -15,13 +15,13 @@ HTTP나 HTTPS는 많이 들어봤지만 설명하라고 하면 굉장히 말이 
 ## 1. 개요
 앞서 네트워크 포스팅에서 설명했듯이 HTTP와 HTTPS는 응용 계층 프로토콜이다. 이러한 HTTP와 HTTPS 프로토콜의 스택을 그리면 아래와 같다.
 
-![img.png](\assets\blog\web\http&https\img.png)
+![img.png](/assets/blog/web/http&https/img.png)
 
 기본적으로 TCP/IP 위에서 구동되는데 HTTP의 경우에는 TCP/IP 위에서 구동되고 HTTPS는 TLS 위에서 구동된다.   
 위의 그림으로도 어느정도 이해는 가겠지만, 좀 더 세부적으로 알아보도록 하자.
 
 ## 2. HTTP
-![img_1.png](\assets/blog/web/http&https/img_1.png)
+![img_1.png](/assets/blog/web/http&https/img_1.png)
 
 큰 그림은 위의 그림과 같다.   
 기본적으로 IP위에 TCP위에 HTTP가 올라가는거라 TCP의 신뢰성 있는 전송은 기본적으로 깔린 방식이다.    
@@ -36,7 +36,7 @@ HTTP나 HTTPS는 많이 들어봤지만 설명하라고 하면 굉장히 말이 
 
 기본적으로 HTTP 요청은 아래와 같은 구조를 가진다.
 
-![img.png](\assets/blog/web/http&https/img_2.png)
+![img.png](/assets/blog/web/http&https/img_2.png)
 
 위 그림과 같이 시작 라인과 헤더, 바디로 이루어져있다.
 여기서 Body는 POST, PATCH, PUT에서 사용하며 Body는 어떤 타입으로 보내는지 헤더에서 지정한다.
@@ -80,7 +80,7 @@ HTTP나 HTTPS는 많이 들어봤지만 설명하라고 하면 굉장히 말이 
 
 "go한글.com" 이라는 도메인이 있다고 가정해보겠다. 이를 puny code 문자열 인코딩하면 아래와 같이 변한다.   
 
-```xn--go-f12i831k.com```
+- xn--go-f12i831k.com
 
 먼저 영어 부분만 떼어 적는다 위 예시의 경우에는 go한글이니 go만 남는다.   
 이후 하이픈(-)을 쓰고, 남은 한글의 위치와 내용을 [puny code 방식](https://www.rfc-editor.org/info/rfc3492/#section-4) 으로 인코딩하여 붙이고 뒤에 ```.com```을 붙이면 된다.
@@ -99,7 +99,7 @@ Content-Encoding: gzip
 
 ## 3. HTTPS 
 
-![img_2.png](\assets/blog/web/http&https/img_3.png)
+![img_2.png](/assets/blog/web/http&https/img_3.png)
 
 HTTPS의 큰 그림은 위와 같다. 기본적으로 DNS, IP, TCP 연결을 위한 Handshake와 그 뒤에 HTTP과 같은 통신은 동일하나, TLS 통신을 위한 핸드세이크가 추가되었다. 
 TCP 통신이 연결되면 아래의 절차에 따라 TLS가 이루어진다.
