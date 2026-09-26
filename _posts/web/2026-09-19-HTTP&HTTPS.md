@@ -7,8 +7,6 @@ tags: [web, http, https]
 render_with_liquid: false
 ---
 
-# HTTP와 HTTPS 구조
-
 원래는 네트워크 쪽에 추가되야할 내용인데, 좀 더 찾기 쉽게 웹 카테고리에 올리려고 한다.   
 HTTP나 HTTPS는 많이 들어봤지만 설명하라고 하면 굉장히 말이 궁해지는 경우가 많다. 때문에 이번 기회에 정리해두려고 한다.
 
@@ -65,8 +63,7 @@ HTTP나 HTTPS는 많이 들어봤지만 설명하라고 하면 굉장히 말이 
 헤더 역시 ascii code로 전송되는데 부득이하게 영어가 아닌 경우, 별도의 인코딩 방식에 의해 처리된다.   
 위에서 말한 HTTP Body는 그냥 바이트 배열인데, 앞서 언급한 Content-Type에 따라서 다르게 인코딩하여 전송할 수 있다.   
 
-- ```Content-Type: application/json``` : UTF-8 + Percent Encoding
-- ```application/x-www-form-urlencoded``` : UTF-8 + Percent Encoding
+- ```application/json, application/x-www-form-urlencoded``` : UTF-8 + Percent Encoding
 - ```multipart/form-data``` : raw binary
 
 이후 TCP 패킷으로 나누어서 보내지는데, 최대 패킷 크기를 넘어서면 쪼개져서 전달되게 된다.
@@ -262,9 +259,11 @@ Trust Store
 ```
 
 ##### c) 암호화 통신
-인증서까지 모두 체크하면 Application Traffic Secret가 이전의 공유 비밀키에서 생성되며 클라이언트 -> 서버로 가는 메세지는 Server Application Key로
-서버 -> 클라이언트로 가는 메세지는 Client Application Key로 암호화하여 전송하게 된다.   
-이 경우 클라이언트와 서버는 양쪽 키를 모두 가지고 있으며, 대칭키 암호화이기 때문에 전송과 수신간에 각각 전용 키로 암복호화를 한다.
+인증서까지 모두 체크하면 Application Traffic Secret가 이전의 공유 비밀키에서 생성되며    
+- 클라이언트 -> 서버로 가는 메세지는 Server Application Key로 암호화    
+- 서버 -> 클라이언트로 가는 메세지는 Client Application Key로 암호화       
+
+처리하여 전송하게 된다. 이 경우 클라이언트와 서버는 양쪽 키를 모두 가지고 있으며, 대칭키 암호화이기 때문에 전송과 수신간에 각각 전용 키로 암복호화를 한다.
 
 이후 Header와 Body를 모두 암호화하며 전송한다.   
 만약 HTTP 요청이 아래와 같다고 가정하겠다.
