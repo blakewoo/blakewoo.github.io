@@ -68,7 +68,7 @@ HTTP나 HTTPS는 많이 들어봤지만 설명하라고 하면 굉장히 말이 
 
 이후 TCP 패킷으로 나누어서 보내지는데, 최대 패킷 크기를 넘어서면 쪼개져서 전달되게 된다.
 
-### 1) Puny code
+### 1) 영어 아닌 도메인 변환법 : Puny code
 도메인이 한글이면 어떻게 할까? 혹은 영어권이 아닌 다른 나라라면?
 이 경우 puny code라는 알고리즘을 이용해서 ascii 문자열로 변경한다.   
 이렇게 변경하면 모두 ascii 코드로 처리할 수 있기 때문에 편의성이 올라간다.   
@@ -84,7 +84,7 @@ xn--go-f12i831k.com
 먼저 영어 부분만 떼어 적는다 위 예시의 경우에는 go한글이니 go만 남는다.   
 이후 하이픈(-)을 쓰고, 남은 한글의 위치와 내용을 [puny code 방식](https://www.rfc-editor.org/info/rfc3492/#section-4) 으로 인코딩하여 붙이고 뒤에 ```.com```을 붙이면 된다.
 
-### 2) Content-encoding
+### 2) 콘텐츠를 인코딩하는 방식 : Content-encoding
 Content-type 과 Content-encoding은 다르다. Content-type은 이 콘텐츠는 어떤 것인가? 라면 Content-encoding은 이 데이터가 어떤 추가 변환을 거쳤는가? 에
 가깝다.
 가령 아래의 경우를 보자.
