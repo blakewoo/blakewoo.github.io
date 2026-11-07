@@ -127,7 +127,7 @@ GPU Kernel에서 구해진 최대 값을 합산하여 각 문서별 유사도 sc
 #### 7) 1차 후보군 잔차 복구를 위한 코드 GPU Memory로 전송 및 잔차 복구 후 Rerank
 Host에서는 상위 φref개의 문서 ID를 받은 뒤에 Memory에서 해당 문서를 잔차 복구할 때 필요한 코드 위치를 찾아서
 GPU Memory로 전달한다. 이후 GPU에서는 받은 잔차 복구 코드를 이용하여 문서를 잔차 복구하고 
-Maxsim 연산을 이용해서 full-rerank를 한 뒤에 나온 score를 내림차순으로 정렬하여 K개를 반환한다.
+Maxsim 연산을 이용해서 [full-rerank](https://blakewoo.github.io/posts/VectorDB-Rerank/) 를 한 뒤에 나온 score를 내림차순으로 정렬하여 K개를 반환한다.
 
 > ※ 추가 업데이트 예정이다.
 {: .prompt-tip }

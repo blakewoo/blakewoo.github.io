@@ -144,7 +144,7 @@ Stage 2에서 나온 ```ndocs``` 개에서 더 작은 후보군 개수 만큼 �
 논문에서는 ```ndocs/4``` 개의 문서만 남기는게 가장 좋은 결과를 보였다고 말한다.
 
 ### 2.4. Stage 4: Final Ranking with Decompression
-Stage 3에서 반환된 문서들을 모두 잔차 복구하여 Query와 Full maxsim 연산을 진행한 뒤 상위 K개 만큼 반환한다.
+Stage 3에서 반환된 문서들을 모두 잔차 복구하여 Query와 Full maxsim 연산([Rerank]((https://blakewoo.github.io/posts/VectorDB-Rerank/))) 을 진행한 뒤 상위 K개 만큼 반환한다.
 
 
 > ※ 추가 업데이트 예정이다.

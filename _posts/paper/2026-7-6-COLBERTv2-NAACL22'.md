@@ -67,7 +67,7 @@ Centroid에 할당된 문서 Vector들의 잔차 압축을 해제하고 $q_{i}$ 
 이러한 방법으로 후보 문서들을 선별한다. 이때의 유사도 합은 실제 MaxSim 점수의 하한선(lower bound) 역할을 한다.
 
 ### 3.3. Re-ranking
-3.2. 에서 구한 후보 문서 ID에 속한 모든 잔차 압축된 벡터를 가지고와 잔차 압축을 해제한 뒤 Maxsim 연산을 통해 Rerank를 하여
+3.2. 에서 구한 후보 문서 ID에 속한 모든 잔차 압축된 벡터를 가지고와 잔차 압축을 해제한 뒤 Maxsim 연산을 통해 [Rerank](https://blakewoo.github.io/posts/VectorDB-Rerank/) 를 하여
 최종 후보를 반환한다.
 
 > ※ 추가 업데이트 예정이다.

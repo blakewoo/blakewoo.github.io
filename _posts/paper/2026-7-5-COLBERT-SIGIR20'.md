@@ -80,7 +80,7 @@ BERT output 768-dim → Linear layer → 128-dim
 
 #### 2.4.2. IVF + Rerank
 Faiss와 같은 라이브러리에서 제공하는 [IVF](https://blakewoo.github.io/posts/VectorDB-ANNs/) 로 전체 문서의 Vector를 Index로 만들어서 
-1차 후보군 1000개를 뽑은 뒤 후보군과 쿼리의 Maxsim을 구하여 Rerank하는 방법이다.
+1차 후보군 1000개를 뽑은 뒤 후보군과 쿼리의 Maxsim을 구하여 [Rerank](https://blakewoo.github.io/posts/VectorDB-Rerank/) 하는 방법이다.
 
 
 > ※ Rerank 방식에 대한 세부 내용은 이전에 포스팅한 [이곳](https://blakewoo.github.io/posts/VectorDB-Rerank/) 을 참고하라.
